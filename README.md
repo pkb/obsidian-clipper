@@ -2,6 +2,22 @@ Official Obsidian browser extension. Available for [Chrome](https://chromewebsto
 
 ⚠️ **Obsidian Clipper is still in beta.** Some features require Obsidian 1.7.2. If you are on Windows please make sure you are using Obsidian 1.7.2+ and turn on the "Beta features" in Web Clipper settings.
 
+## Changes to Upstream
+
+- Added a `text` filter that converts HTML to plain text.
+- Added a `json` filter that converts HTML to a JSON object.
+- Added a `wrap` filter that wraps consecutive items in a list into an object with properties specified as parameters.
+- Modified the template filter to replace HTML entities with actual symbols.
+
+### Example using these filters
+
+```
+{{selectorHtml:ol.instructions > li > a, ol.instructions > li > p |join:"" | remove_html:(".as-ad-step") |json|wrap:("img","desc") | map:item => ({desc: item.desc.p[0].text, img: item.img.a[0].attributes.src}) | template: "> [!multi-column]\n>\n>> [!blank-container]\n>>![]&#40;https:${img}&#41;\n>\n>> [!blank-container&#124;wide-5]\n>> ${desc}\n>\n" }}
+```
+
+> [!NOTE]
+> I will dropp this fork when I will figure out how to acheive the same results with the upstream code.
+
 ## Features
 
 - **Customizable templates.** Create templates to automatically extract and organize metadata from web pages.
