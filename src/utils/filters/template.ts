@@ -37,6 +37,12 @@ export const template = (input: string | any[], param?: string): string => {
 	return result;
 };
 
+function decodeHtmlEntities(str: string): string {
+    const txt = document.createElement("textarea");
+    txt.innerHTML = str;
+    return txt.value;
+}
+
 function replaceTemplateVariables(obj: any, template: string): string {
 	debugLog('Template', 'Replacing template variables for:', obj);
 	debugLog('Template', 'Template:', template);
@@ -63,6 +69,7 @@ function replaceTemplateVariables(obj: any, template: string): string {
 	// Replace \n with actual newlines
 	result = result.replace(/\\n/g, '\n');
 	debugLog('Template', 'Result after newline replacement:', result);
+        result = decodeHtmlEntities(result);
 
 	// Remove any empty lines (which might be caused by undefined values)
 	result = result.split('\n').filter(line => line.trim() !== '').join('\n');

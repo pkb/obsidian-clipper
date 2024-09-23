@@ -34,7 +34,11 @@ import { template } from './filters/template';
 import { title } from './filters/title';
 import { trim } from './filters/trim';
 import { upper } from './filters/upper';
+import { text } from './filters/text';
+import { json } from './filters/json';
+import { wrap } from './filters/wrap';
 import { wikilink } from './filters/wikilink';
+
 
 export const filters: { [key: string]: FilterFunction } = {
 	blockquote,
@@ -71,6 +75,9 @@ export const filters: { [key: string]: FilterFunction } = {
 	title,
 	trim,
 	upper,
+	text,
+	json,
+	wrap,
 	wikilink
 };
 
