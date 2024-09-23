@@ -255,10 +255,15 @@ export async function initializePageContent(content: string, selectedHtml: strin
 			|| getMetaContent(doc, "property", "author")
 			|| getMetaContent(doc, "name", "byl")
 			|| getMetaContent(doc, "name", "author")
-			|| getMetaContent(doc, "name", "twitter:creator")
-			|| getMetaContent(doc, "property", "og:site_name")
-			|| getMetaContent(doc, "name", "application-name")
 			|| getMetaContent(doc, "name", "copyright")
+			|| getSchemaProperty(schemaOrgData, 'copyrightHolder.name')
+			|| getMetaContent(doc, "property", "og:site_name")
+			|| getSchemaProperty(schemaOrgData, 'publisher.name')
+			|| getMetaContent(doc, "property", "og:site_name")
+			|| getSchemaProperty(schemaOrgData, 'sourceOrganization.name')
+			|| getSchemaProperty(schemaOrgData, 'isPartOf.name')
+			|| getMetaContent(doc, "name", "twitter:creator")
+			|| getMetaContent(doc, "name", "application-name")
 			|| '';
 
 		const description =
@@ -350,6 +355,8 @@ export async function initializePageContent(content: string, selectedHtml: strin
 			addSchemaOrgDataToVariables(schemaOrgData, currentVariables);
 		}
 
+		debugLog('Variables', 'Available variables:', currentVariables);
+
 		return {
 			noteName,
 			currentVariables
@@ -406,16 +413,16 @@ function getSchemaProperty(schemaOrgData: any, property: string, defaultValue: s
 		return getSchemaProperty.memoized.get(memoKey) as string;
 	}
 
-	const searchSchema = (data: any, props: string[]): string => {
+	const searchSchema = (data: any, props: string[], fullPath: string): string => {
 		if (typeof data === 'string') return data;
 		if (!data || typeof data !== 'object') return '';
 
 		if (Array.isArray(data)) {
-			for (const item of data) {
-				const result = searchSchema(item, props);
-				if (result) return result;
+			// If the full path is 'author.name', concatenate the names
+			if (fullPath === 'author.name') {
+				return data.map((item: any) => searchSchema(item, ['name'], 'name')).filter(Boolean).join(', ');
 			}
-			return '';
+			return data.map((item: any) => searchSchema(item, props, fullPath)).filter(Boolean).join(', ');
 		}
 
 		const [currentProp, ...remainingProps] = props;
@@ -427,12 +434,12 @@ function getSchemaProperty(schemaOrgData: any, property: string, defaultValue: s
 
 		const value = data[currentProp];
 		if (value !== undefined) {
-			return searchSchema(value, remainingProps);
+			return searchSchema(value, remainingProps, fullPath ? `${fullPath}.${currentProp}` : currentProp);
 		}
 
 		for (const key in data) {
 			if (typeof data[key] === 'object') {
-				const result = searchSchema(data[key], props);
+				const result = searchSchema(data[key], props, fullPath ? `${fullPath}.${key}` : key);
 				if (result) return result;
 			}
 		}
@@ -441,7 +448,7 @@ function getSchemaProperty(schemaOrgData: any, property: string, defaultValue: s
 	};
 
 	try {
-		const result = searchSchema(schemaOrgData, property.split('.')) || defaultValue;
+		const result = searchSchema(schemaOrgData, property.split('.'), '') || defaultValue;
 		getSchemaProperty.memoized.set(memoKey, result);
 		return result;
 	} catch (error) {

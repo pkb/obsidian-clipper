@@ -1,6 +1,6 @@
 Official Obsidian browser extension. Available for [Chrome](https://chromewebstore.google.com/detail/obsidian-web-clipper/cnjifjpddelmedmihgijeibhnjfabmlf), [Firefox](https://addons.mozilla.org/en-US/firefox/addon/web-clipper-obsidian/), Edge, Brave, and Arc. Support for Safari to come.
 
-⚠️ **Obsidian Clipper is still in beta.** Some features require Obsidian 1.7.2. If you are on Windows please make sure you are using Obsidian 1.7.2+ and turn on the "Beta features" in Web Clipper settings.
+⚠️ **Obsidian Clipper is still in beta and requires Obsidian 1.7.2.** If you see an empty note after clicking **Add to Obsidian** please make sure you are using Obsidian 1.7.2+ and turn on the "Early access features" in Web Clipper settings.
 
 ## Changes to Upstream
 
@@ -37,6 +37,8 @@ If you want to install the extension manually, go to [releases](https://github.c
 - **Chrome:** drag and drop the `.zip` in `chrome://extensions/`
 - **Edge:** drag and drop the Chrome version `.zip` in `edge://extensions/`
 - **Brave:** drag and drop the Chrome version `.zip` in `brave://extensions/`
+
+On Linux, make sure that Obsidian URI is registered. [See instructions on the Obsidian Help site.](https://help.obsidian.md/Extending+Obsidian/Obsidian+URI#Register+Obsidian+URI)
 
 ## Using templates
 
