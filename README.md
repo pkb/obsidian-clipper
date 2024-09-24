@@ -113,13 +113,15 @@ Meta variables allow you to extract data from meta tags in the page.
 
 #### Selector variables
 
-Selector variables allow you to extract data from elements on the page using the syntax `{{selector:cssSelector:attribute}}`, where `:attribute` is optional. If no attribute is specified, the text content of the element is returned.
+Selector variables allow you to extract text content from elements on the page using the syntax `{{selector:cssSelector:attribute}}`, where `:attribute` is optional. If no attribute is specified, the text content of the element is returned. You can also use `{{selectorHtml:cssSelector}}` to get the HTML content of the element.
 
 - `{{selector:h1}}` returns text content of the first `h1` element on the page.
 - `{{selector:.author}}` returns text content of the first `.author` element on the page.
 - `{{selector:img.hero:src}}` returns the `src` attribute of the first image with class `hero`.
 - `{{selector:a.main-link:href}}` returns the `href` attribute of the first anchor tag with class `main-link`.
+- `{{selectorHtml:body|markdown}}` returns the entire HTML of the `body` element, converted to Markdown using the `markdown` filter.
 - Nested CSS selectors and combinators are supported if you need more specificity.
+- If multiple elements match the selector, an array is returned, which you can process with filters like `join` or `map`.
 
 #### Schema.org variables
 
@@ -200,6 +202,7 @@ Filters allow you to modify variables in a template. Filters are applied to vari
 		- Example: `[{gem: "obsidian", color: "black"}, {gem: "amethyst", color: "purple"}]|map:item => ({name: item.gem, hex: item.color === "black" ? "#000" : "#800080"})`  returns `[{name: "obsidian", hex: "#000"}, {name: "amethyst", hex: "#800080"}]`.
 	- Can be combined with `template` filter, e.g. `map:item => ({name: ${item.gem}, color: item.color})|template:"- ${name} is ${color}\n"`
 - `markdown` converts a string to an [Obsidian Flavored Markdown](https://help.obsidian.md/Editing+and+formatting/Obsidian+Flavored+Markdown) formatted string.
+	- Useful when combined with variables that return HTML such as `{{contentHtml}}`, `{{fullHtml}}`, and selector variables like `{{selectorHtml:cssSelector}}`.
 - `object` manipulates object data:
 	- `object:array` converts an object to an array of key-value pairs.
 	- `object:keys` returns an array of the object's keys.
