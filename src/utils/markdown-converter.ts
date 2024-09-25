@@ -3,6 +3,19 @@ import { MathMLToLaTeX } from 'mathml-to-latex';
 import { processUrls } from './string-utils';
 import { debugLog } from './debug';
 
+const SUPPORTED_PROGRAMMING_LANGUAGES: Record<string, string> = {
+    "cpp": "cpp",
+    "c++": "cpp",
+    "py": "python",
+    "python": "python",
+    "python3": "python",
+    "javascript": "javascript",
+    "js": "javascript",
+    "html": "html",
+    "css": "css",
+    "xml": "xml"
+}
+
 export function createMarkdownContent(content: string, url: string) {
 	debugLog('Markdown', 'Starting markdown conversion for URL:', url);
 	debugLog('Markdown', 'Content length:', content.length);
@@ -444,8 +457,15 @@ export function createMarkdownContent(content: string, url: string) {
 			const getLanguageFromClass = (classList: DOMTokenList): string => {
 				for (const className of Array.from(classList)) {
 					if (className.startsWith('language-')) {
-						return className.slice(9); // Remove 'language-' prefix
+						const language = className.slice(9); // Remove 'language-' prefix
+                        if (language in SUPPORTED_PROGRAMMING_LANGUAGES) {
+                            return SUPPORTED_PROGRAMMING_LANGUAGES[language];
+                        }
+                        return language;
 					}
+                    if( className in SUPPORTED_PROGRAMMING_LANGUAGES ) {
+                        return SUPPORTED_PROGRAMMING_LANGUAGES[className];
+                    }
 				}
 				return '';
 			};
@@ -482,7 +502,9 @@ export function createMarkdownContent(content: string, url: string) {
 				} else if (element instanceof HTMLElement) {
 					let text = '';
 					element.childNodes.forEach(child => {
-						if (child instanceof HTMLElement && child.classList.contains('ec-line')) {
+                        if (child instanceof HTMLBRElement) {
+                            text += '\n';
+						} else if (child instanceof HTMLElement && child.classList.contains('ec-line')) {
 							text += extractStructuredText(child) + '\n';
 						} else {
 							text += extractStructuredText(child);
