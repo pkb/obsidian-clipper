@@ -2,16 +2,25 @@
 	"manifest_version": 3,
 	"name": "Obsidian Web Clipper",
 	"homepage_url": "https://obsidian.md/",
-	"version": "0.6.2",
+	"version": "0.7.0",
 	"description": "Save content from the web in a private and durable format that you can access offline. The official browser extension for Obsidian.",
 	"permissions": [
 		"activeTab",
 		"commands",
 		"contextMenus",
-		"storage"
+		"sidePanel",
+		"storage",
+		"scripting"
+	],
+	"host_permissions": [
+		"http://*/*",
+		"https://*/*"
 	],
 	"action": {
 		"default_popup": "popup.html"
+	},
+	"side_panel": {
+		"default_path": "side-panel.html"
 	},
 	"options_ui": {
 		"page": "settings.html",
