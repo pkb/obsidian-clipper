@@ -37,6 +37,7 @@ import { upper } from './filters/upper';
 import { text } from './filters/text';
 import { json } from './filters/json';
 import { wrap } from './filters/wrap';
+import { split_items } from './filters/split_items';
 import { wikilink } from './filters/wikilink';
 
 
@@ -78,6 +79,7 @@ export const filters: { [key: string]: FilterFunction } = {
 	text,
 	json,
 	wrap,
+        split_items,
 	wikilink
 };
 
