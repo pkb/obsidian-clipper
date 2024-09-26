@@ -127,13 +127,57 @@ function setupMessageListeners() {
 	});
 }
 
+let lastViewportHeight = window.innerHeight;
+let resizeTimer: ReturnType<typeof setTimeout>;
+
+function checkViewportHeight() {
+	const currentViewportHeight = window.innerHeight;
+
+	// If the viewport height has changed, we trigger the resize-like behavior
+	if (currentViewportHeight !== lastViewportHeight) {
+		document.body.classList.add('resizing');
+		console.log('Resizing');
+		const vh = window.innerHeight * 0.01;
+		document.documentElement.style.setProperty('--vh', `${vh}px`);
+
+		// Reset the timer to remove the class after resizing has stopped
+		clearTimeout(resizeTimer);
+		resizeTimer = setTimeout(() => {
+			document.body.classList.remove('resizing');
+		}, 300);  // Adjust debounce time as needed
+
+		// Update the last known viewport height
+		lastViewportHeight = currentViewportHeight;
+	}
+}
+
+// Set up a MutationObserver to watch for changes in body size
+const resizeObserver = new ResizeObserver(() => {
+	checkViewportHeight();
+});
+
 document.addEventListener('DOMContentLoaded', async function() {
+
+	resizeObserver.observe(document.body);
+	console.log('Resize observer set up');
+
 	initializeIcons();
 	const refreshButton = document.getElementById('refresh-pane');
 	if (refreshButton) {
 		refreshButton.addEventListener('click', (e) => {
 			e.preventDefault();
 			refreshPopup();
+		});
+	}
+	const settingsButton = document.getElementById('open-settings');
+	if (settingsButton) {
+		settingsButton.addEventListener('click', async function() {
+			browser.runtime.openOptionsPage();
+			
+			const browserType = await detectBrowser();
+			if (browserType === 'firefox-mobile') {
+				setTimeout(() => window.close(), 50);
+			}
 		});
 	}
 
@@ -166,6 +210,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 						showVariables();
 					});
 			}
+
 		} catch (error) {
 			console.error('Error initializing popup:', error);
 			showError('Please try reloading the page.');
@@ -210,18 +255,6 @@ async function initializeUI() {
 		console.warn('Clip button not found');
 	}
 
-	const settingsButton = document.getElementById('open-settings');
-	if (settingsButton) {
-		settingsButton.addEventListener('click', async function() {
-			browser.runtime.openOptionsPage();
-			
-			const browserType = await detectBrowser();
-			if (browserType === 'firefox-mobile') {
-				setTimeout(() => window.close(), 50);
-			}
-		});
-	}
-
 	const showMoreActionsButton = document.getElementById('show-variables') as HTMLElement;
 	const variablesPanel = document.createElement('div');
 	variablesPanel.className = 'variables-panel';
@@ -254,11 +287,18 @@ function showError(message: string): void {
 		errorMessage.style.display = 'flex';
 		clipper.style.display = 'none';
 
-		// Ensure the settings icon is still visible when showing an error
-		const settingsIcon = document.getElementById('open-settings') as HTMLElement;
-		if (settingsIcon) {
-			settingsIcon.style.display = 'flex';
-		}
+		document.body.classList.add('has-error');
+	}
+}
+function clearError(): void {
+	const errorMessage = document.querySelector('.error-message') as HTMLElement;
+	const clipper = document.querySelector('.clipper') as HTMLElement;
+
+	if (errorMessage && clipper) {
+		errorMessage.style.display = 'none';
+		clipper.style.display = 'block';
+
+		document.body.classList.remove('has-error');
 	}
 }
 
@@ -472,8 +512,13 @@ async function initializeTemplateFields(currentTabId: number, template: Template
 	}
 
 	currentVariables = variables;
-	const templateProperties = document.querySelector('.metadata-properties') as HTMLElement;
-	templateProperties.innerHTML = '';
+	const existingTemplateProperties = document.querySelector('.metadata-properties') as HTMLElement;
+	
+	// Create a new off-screen element
+	const newTemplateProperties = createElementWithClass('div', 'metadata-properties');
+	newTemplateProperties.style.position = 'absolute';
+	newTemplateProperties.style.left = '-9999px';
+	document.body.appendChild(newTemplateProperties);
 
 	if (!Array.isArray(template.properties)) {
 		logError('Template properties are not an array');
@@ -512,9 +557,18 @@ async function initializeTemplateFields(currentTabId: number, template: Template
 			<label for="${property.name}">${property.name}</label>
 			<input id="${property.name}" type="text" value="${escapeHtml(value)}" data-type="${property.type}" data-template-value="${escapeHtml(property.value)}" />
 		`;
-		templateProperties.appendChild(propertyDiv);
+		newTemplateProperties.appendChild(propertyDiv);
 	}
-	
+
+	// Replace the existing element with the new one
+	if (existingTemplateProperties && existingTemplateProperties.parentNode) {
+		existingTemplateProperties.parentNode.replaceChild(newTemplateProperties, existingTemplateProperties);
+	}
+
+	// Remove the temporary styling
+	newTemplateProperties.style.position = '';
+	newTemplateProperties.style.left = '';
+
 	const noteNameField = document.getElementById('note-name-field') as HTMLTextAreaElement;
 	if (noteNameField) {
 		let formattedNoteName = await replaceVariables(currentTabId!, template.noteNameFormat, variables, currentTabId ? await browser.tabs.get(currentTabId).then(tab => tab.url || '') : '');
