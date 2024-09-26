@@ -38,6 +38,7 @@ import { text } from './filters/text';
 import { json } from './filters/json';
 import { wrap } from './filters/wrap';
 import { split_items } from './filters/split_items';
+import { dur } from './filters/dur';
 import { wikilink } from './filters/wikilink';
 
 
@@ -80,6 +81,7 @@ export const filters: { [key: string]: FilterFunction } = {
 	json,
 	wrap,
         split_items,
+        dur,
 	wikilink
 };
 
