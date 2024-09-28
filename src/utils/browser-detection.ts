@@ -4,7 +4,7 @@ interface NavigatorExtended extends Navigator {
 	};
 }
 
-export async function detectBrowser(): Promise<'chrome' | 'firefox' | 'firefox-mobile' | 'brave' | 'edge' | 'safari' | 'mobile-safari' | 'other'> {
+export async function detectBrowser(): Promise<'chrome' | 'firefox' | 'firefox-mobile' | 'brave' | 'edge' | 'safari' | 'mobile-safari' | 'ipad-os' | 'other'> {
 	const userAgent = navigator.userAgent.toLowerCase();
 	
 	if (userAgent.includes('firefox')) {
@@ -19,7 +19,9 @@ export async function detectBrowser(): Promise<'chrome' | 'firefox' | 'firefox-m
 		}
 		return 'chrome';
 	} else if (userAgent.includes('safari')) {
-		if (userAgent.includes('mobile') || userAgent.includes('iphone') || userAgent.includes('ipad')) {
+		if (isIPad()) {
+			return 'ipad-os';
+		} else if (userAgent.includes('mobile') || userAgent.includes('iphone')) {
 			return 'mobile-safari';
 		}
 		return 'safari';
@@ -28,35 +30,43 @@ export async function detectBrowser(): Promise<'chrome' | 'firefox' | 'firefox-m
 	}
 }
 
+function isIPad(): boolean {
+	return navigator.userAgent.includes('iPad') ||
+		(navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
 export async function addBrowserClassToHtml() {
 	const browser = await detectBrowser();
 	const htmlElement = document.documentElement;
 
 	// Remove any existing browser classes
-	htmlElement.classList.remove('is-firefox-mobile', 'is-chromium', 'is-firefox', 'is-edge', 'is-chrome', 'is-brave', 'is-safari', 'is-mobile-safari');
+	htmlElement.classList.remove('is-firefox-mobile', 'is-chromium', 'is-firefox', 'is-edge', 'is-chrome', 'is-brave', 'is-safari', 'is-mobile-safari', 'is-ipad-os');
 
 	// Add the appropriate class based on the detected browser
 	switch (browser) {
 		case 'firefox-mobile':
-			htmlElement.classList.add('is-firefox-mobile', 'is-firefox');
+			htmlElement.classList.add('is-mobile', 'is-firefox-mobile', 'is-firefox');
 			break;
 		case 'firefox':
 			htmlElement.classList.add('is-firefox');
 			break;
 		case 'edge':
-			htmlElement.classList.add('is-edge', 'is-chromium');
+			htmlElement.classList.add('is-chromium', 'is-edge');
 			break;
 		case 'chrome':
-			htmlElement.classList.add('is-chrome', 'is-chromium');
+			htmlElement.classList.add('is-chromium', 'is-chrome');
 			break;
 		case 'brave':
-			htmlElement.classList.add('is-brave', 'is-chromium');
+			htmlElement.classList.add('is-chromium','is-brave');
 			break;
 		case 'safari':
 			htmlElement.classList.add('is-safari');
 			break;
 		case 'mobile-safari':
-			htmlElement.classList.add('is-mobile-safari', 'is-safari');
+			htmlElement.classList.add('is-mobile', 'is-mobile-safari', 'is-safari', 'is-ios');
+			break;
+		case 'ipad-os':
+			htmlElement.classList.add('is-tablet', 'is-ipad-os', 'is-safari');
 			break;
 		default:
 			// For 'other' browsers, we don't add any class

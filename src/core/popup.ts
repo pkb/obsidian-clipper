@@ -127,40 +127,7 @@ function setupMessageListeners() {
 	});
 }
 
-let lastViewportHeight = window.innerHeight;
-let resizeTimer: ReturnType<typeof setTimeout>;
-
-function checkViewportHeight() {
-	const currentViewportHeight = window.innerHeight;
-
-	// If the viewport height has changed, we trigger the resize-like behavior
-	if (currentViewportHeight !== lastViewportHeight) {
-		document.body.classList.add('resizing');
-		console.log('Resizing');
-		const vh = window.innerHeight * 0.01;
-		document.documentElement.style.setProperty('--vh', `${vh}px`);
-
-		// Reset the timer to remove the class after resizing has stopped
-		clearTimeout(resizeTimer);
-		resizeTimer = setTimeout(() => {
-			document.body.classList.remove('resizing');
-		}, 300);  // Adjust debounce time as needed
-
-		// Update the last known viewport height
-		lastViewportHeight = currentViewportHeight;
-	}
-}
-
-// Set up a MutationObserver to watch for changes in body size
-const resizeObserver = new ResizeObserver(() => {
-	checkViewportHeight();
-});
-
 document.addEventListener('DOMContentLoaded', async function() {
-
-	resizeObserver.observe(document.body);
-	console.log('Resize observer set up');
-
 	initializeIcons();
 	const refreshButton = document.getElementById('refresh-pane');
 	if (refreshButton) {
@@ -563,6 +530,8 @@ async function initializeTemplateFields(currentTabId: number, template: Template
 	// Replace the existing element with the new one
 	if (existingTemplateProperties && existingTemplateProperties.parentNode) {
 		existingTemplateProperties.parentNode.replaceChild(newTemplateProperties, existingTemplateProperties);
+		// Remove the old element from the DOM
+		existingTemplateProperties.remove();
 	}
 
 	// Remove the temporary styling
