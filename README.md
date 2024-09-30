@@ -117,8 +117,8 @@ Selector variables allow you to extract text content from elements on the page u
 
 - `{{selector:h1}}` returns text content of the first `h1` element on the page.
 - `{{selector:.author}}` returns text content of the first `.author` element on the page.
-- `{{selector:img.hero:src}}` returns the `src` attribute of the first image with class `hero`.
-- `{{selector:a.main-link:href}}` returns the `href` attribute of the first anchor tag with class `main-link`.
+- `{{selector:img.hero?src}}` returns the `src` attribute of the first image with class `hero`.
+- `{{selector:a.main-link?href}}` returns the `href` attribute of the first anchor tag with class `main-link`.
 - `{{selectorHtml:body|markdown}}` returns the entire HTML of the `body` element, converted to Markdown using the `markdown` filter.
 - Nested CSS selectors and combinators are supported if you need more specificity.
 - If multiple elements match the selector, an array is returned, which you can process with filters like `join` or `map`.
@@ -255,6 +255,9 @@ Filters allow you to modify variables in a template. Filters are applied to vari
 - `title` returns a titlecased version of the value, e.g. `"hello world"|title` returns `"Hello World"`.
 - `trim` removes whitespace from both ends of a string.
 	- `"  hello world  "|trim` returns `"hello world"`.
+- `uncamel` converts camelCase or PascalCase to space-separated words, which you can further format with other filters like `title` or `capitalize`.
+	- `"camelCase"|uncamel` returns `"camel case"`.
+	- `"PascalCase"|uncamel` returns `"pascal case"`.
 - `upper` converts a value to uppercase, e.g. `"hello world"|upper` returns `"HELLO WORLD"`.
 - `wikilink` converts strings, arrays, or objects into Obsidian wikilink syntax.
 	- For strings: `"page"|wikilink` returns `[[page]]`.
@@ -293,6 +296,6 @@ This will create two directories:
 - [readability](https://github.com/mozilla/readability) for content extraction
 - [turndown](https://github.com/mixmark-io/turndown) for HTML to Markdown conversion
 - [dayjs](https://github.com/iamkun/dayjs) for date parsing and formatting
-- [lz-string](https://github.com/pieroxy/lz-string) for string compression
+- [lz-string](https://github.com/pieroxy/lz-string) to compress templates to reduce storage space
 - [lucide](https://github.com/lucide-icons/lucide) for icons
 - [mathml-to-latex](https://github.com/asnunes/mathml-to-latex) for MathML to LaTeX conversion

@@ -9,6 +9,7 @@ import { date } from './filters/date';
 import { date_modify } from './filters/date_modify';
 import { first } from './filters/first';
 import { footnote } from './filters/footnote';
+import { html_to_json } from './filters/html_to_json';
 import { image } from './filters/image';
 import { join } from './filters/join';
 import { kebab } from './filters/kebab';
@@ -33,6 +34,7 @@ import { table } from './filters/table';
 import { template } from './filters/template';
 import { title } from './filters/title';
 import { trim } from './filters/trim';
+import { uncamel } from './filters/uncamel';
 import { upper } from './filters/upper';
 import { text } from './filters/text';
 import { json } from './filters/json';
@@ -51,6 +53,7 @@ export const filters: { [key: string]: FilterFunction } = {
 	date,
 	first,
 	footnote,
+	html_to_json,
 	image,
 	join,
 	kebab,
@@ -76,6 +79,7 @@ export const filters: { [key: string]: FilterFunction } = {
 	template,
 	title,
 	trim,
+	uncamel,
 	upper,
 	text,
 	json,
@@ -93,6 +97,9 @@ function splitFilterString(filterString: string): string[] {
 	let quoteType = '';
 	let escapeNext = false;
 	let depth = 0;
+
+	// Remove all spaces before and after | that are not within quotes or parentheses
+	filterString = filterString.replace(/\s*\|\s*(?=(?:[^"'()]*["'][^"'()]*["'])*[^"'()]*$)/g, '|');
 
 	// Iterate through each character in the filterString
 	for (let i = 0; i < filterString.length; i++) {
@@ -147,6 +154,9 @@ function splitFilterString(filterString: string): string[] {
 function parseFilterString(filterString: string): string[] {
 	// Remove outer quotes if present (both single and double quotes)
 	filterString = filterString.replace(/^(['"])(.*)\1$/, '$2');
+
+	// Remove all spaces before and after : that are not within quotes or parentheses
+	filterString = filterString.replace(/\s*:\s*(?=(?:[^"'()]*["'][^"'()]*["'])*[^"'()]*$)/g, ':');
 
 	const parts: string[] = [];
 	let current = '';

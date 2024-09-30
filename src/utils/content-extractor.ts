@@ -126,21 +126,27 @@ function getNestedProperty(obj: any, path: string): any {
 }
 
 export async function replaceVariables(tabId: number, text: string, variables: { [key: string]: string }, currentUrl: string): Promise<string> {
-	const regex = /{{(?:schema:)?(?:selector:)?(?:prompt:)?(.*?)}}/g;
+	const regex = /{{(?:schema:)?(?:selector:)?(?:selectorHtml:)?(?:prompt:)?\s*([\s\S]*?)\s*}}/g;
 	const matches = text.match(regex);
 
 	if (matches) {
 		for (const match of matches) {
 			let replacement: string;
-			if (match.startsWith('{{selector:') || match.startsWith('{{selectorHtml:')) {
-				replacement = await processSelector(tabId, match, currentUrl);
-			} else if (match.startsWith('{{schema:')) {
+			const trimmedMatch = match.trim().slice(2, -2).trim();
+			const normalizedMatch = trimmedMatch.replace(/\s+/g, ' ');
+			
+			if (normalizedMatch.startsWith('selector:') || normalizedMatch.startsWith('selectorHtml:')) {
+				const [selectorType, ...selectorParts] = normalizedMatch.split(':');
+				const selector = selectorParts.join(':').trim();
+				const reconstructedMatch = `{{${selectorType}:${selector}}}`;
+				replacement = await processSelector(tabId, reconstructedMatch, currentUrl);
+			} else if (normalizedMatch.startsWith('schema:')) {
 				replacement = await processSchema(match, variables, currentUrl);
-			} else if (match.startsWith('{{prompt:')) {
+			} else if (normalizedMatch.startsWith('prompt:')) {
 				replacement = await processPrompt(match, variables, currentUrl);
 			} else {
-				const [variableName, ...filterParts] = match.slice(2, -2).split('|');
-				let value = variables[`{{${variableName}}}`] || '';				
+				const [variableName, ...filterParts] = normalizedMatch.split('|').map(part => part.trim());
+				let value = variables[`{{${variableName.trim()}}}`] || '';				
 				const filtersString = filterParts.join('|');
 				replacement = applyFilters(value, filtersString, currentUrl);
 			}
@@ -269,20 +275,20 @@ export async function initializePageContent(content: string, selectedHtml: strin
 		const markdownBody = createMarkdownContent(content, currentUrl);
 
 		const currentVariables: { [key: string]: string } = {
-			'{{author}}': authorName,
-			'{{content}}': markdownBody,
-			'{{contentHtml}}': content,
-			'{{date}}': dayjs().format('YYYY-MM-DDTHH:mm:ssZ'),
-			'{{time}}': dayjs().format('YYYY-MM-DDTHH:mm:ssZ'),
-			'{{description}}': description,
-			'{{domain}}': domain,
-			'{{fullHtml}}': fullHtml,
-			'{{image}}': image,
-			'{{noteName}}': noteName,
-			'{{published}}': published,
-			'{{site}}': site,
-			'{{title}}': title,
-			'{{url}}': currentUrl
+			'{{author}}': authorName.trim(),
+			'{{content}}': markdownBody.trim(),
+			'{{contentHtml}}': content.trim(),
+			'{{date}}': dayjs().format('YYYY-MM-DDTHH:mm:ssZ').trim(),
+			'{{time}}': dayjs().format('YYYY-MM-DDTHH:mm:ssZ').trim(),
+			'{{description}}': description.trim(),
+			'{{domain}}': domain.trim(),
+			'{{fullHtml}}': fullHtml.trim(),
+			'{{image}}': image.trim(),
+			'{{noteName}}': noteName.trim(),
+			'{{published}}': published.trim(),
+			'{{site}}': site.trim(),
+			'{{title}}': title.trim(),
+			'{{url}}': currentUrl.trim()
 		};
 
 		// Add extracted content to variables
@@ -341,8 +347,13 @@ function addSchemaOrgDataToVariables(schemaData: any, variables: { [key: string]
 			}
 		});
 	} else if (typeof schemaData === 'object' && schemaData !== null) {
+		// Store the entire object as JSON
+		const objectKey = `{{schema:${prefix.replace(/\.$/, '')}}}`;
+		variables[objectKey] = JSON.stringify(schemaData);
+
+		// Process individual properties
 		Object.entries(schemaData).forEach(([key, value]) => {
-			if (key === '@type') return; // Skip @type as it's used in the prefix
+			if (key === '@type') return;
 			
 			const variableKey = `{{schema:${prefix}${key}}}`;
 			if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
