@@ -1,7 +1,8 @@
 :root {
-	--popup-height: 520px;
-	--popup-width: 340px;
+	--popup-width: 350px;
 	--popup-width-expanded: 500px;
+	--popup-height: 540px;
+	--popup-max-height: 540px;
 }
 
 .is-safari,
@@ -15,14 +16,20 @@
 .is-mobile-safari,
 .is-firefox-mobile {
 	--popup-height: 100vh;
+	--popup-max-height: 100vh;
 	--popup-width: 100vw;
 	--popup-width-expanded: 100vw;
 }
 
 #popup {
-	height: var(--popup-height);
+	scrollbar-width: none;
+	height: max(var(--popup-height), 100vh);
+	max-height: var(--popup-max-height);
 	overflow: hidden;
 	font-family: var(--font-default);
+	&::-webkit-scrollbar {
+		display: none;
+	}
 }
 
 #popup-container:has(.variables-panel.show) {
@@ -31,11 +38,11 @@
 	overflow: hidden;
 }
 #popup-container {
+	height: 100%;
 	max-height: 100%;
 	display: flex;
 	flex-direction: column;
 	width: var(--popup-width);
-	height: 100%;
 	overflow: hidden;
 	transition: width 0.1s ease-in-out;
 
@@ -81,6 +88,7 @@
 	#note-name-field {
 		border: none;
 		border-radius: 0;
+		background-color: transparent;
 		padding: 6px var(--popup-padding) 10px var(--popup-padding);
 		font-size: var(--font-ui-medium);
 		font-weight: 600;
@@ -91,6 +99,9 @@
 		&:active,
 		&:focus {
 			box-shadow: none;
+		}
+		&::-webkit-scrollbar {
+			display: none;
 		}
 	}
 
@@ -122,7 +133,7 @@
 	}
 
 	.metadata-properties {
-		--input-height: 1.75rem;
+		--input-height: 1.875rem;
 		padding: 2px 0.5rem 0.5rem;
 		margin: 0;
 		display: flex;
@@ -143,6 +154,7 @@
 			gap: 2px;
 			align-items: center;
 			border-radius: var(--radius-s);
+			min-height: var(--input-height);
 			border: 1px solid transparent;
 			transition:
 				box-shadow .15s ease-in-out,
@@ -158,7 +170,7 @@
 					border .15s ease-in-out;
 			}
 			label {
-				width: 120px;
+				width: 7.5rem;
 				padding-inline-start: 6px;
 				white-space: nowrap;
 				overflow: hidden;
@@ -170,8 +182,9 @@
 				-webkit-user-select: none;
 				margin: 0;
 			}
-			input {
+			input[type=text] {
 				border: none;
+				background-color: transparent;
 				&:hover,
 				&:active,
 				&:focus {
@@ -186,6 +199,7 @@
 		display: flex;
 		flex-grow: 1;
 		#note-content-field {
+			background-color: transparent;
 			border-radius: 0;
 			border: none;
 			border-top: 1px solid var(--divider-color);
@@ -218,7 +232,7 @@
 			flex-grow: 1;
 		}
 		#vault-select {
-			font-weight: 500;
+			font-weight: var(--clipper-select-font-weight);
 			min-width: 100px;
 			cursor: pointer;
 		}
@@ -254,12 +268,13 @@
 #template-select {
 	appearance: none;
 	border: none;
+	background-color: transparent;
 	border-radius: var(--radius-m);
 	padding: 0 calc(var(--popup-padding) * 0.5);
 	width: 100%;
 	margin-inline-start: 0;
 	margin-inline-end: auto;
-	font-weight: 500;
+	font-weight: var(--clipper-select-font-weight);
 	color: var(--text-muted);
 	height: 1.625rem;
 	cursor: default;

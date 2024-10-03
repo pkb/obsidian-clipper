@@ -5,6 +5,10 @@ import { initializeToggles } from '../utils/ui-utils';
 import { generalSettings, loadSettings, saveSettings } from '../utils/storage-utils';
 import { detectBrowser } from '../utils/browser-detection';
 import { createElementWithClass, createElementWithHTML } from '../utils/dom-utils';
+import { createDefaultTemplate, getTemplates, saveTemplateSettings } from '../managers/template-manager';
+import { updateTemplateList, showTemplateEditor } from '../managers/template-ui';
+import { exportAllSettings, importAllSettings } from '../utils/import-export';
+import { Template } from '../types/types';
 
 export function updateVaultList(): void {
 	const vaultList = document.getElementById('vault-list') as HTMLUListElement;
@@ -63,16 +67,16 @@ export async function setShortcutInstructions() {
 		let instructions = '';
 		switch (browser) {
 			case 'chrome':
-				instructions = 'To change key assignments, go to <code>chrome://extensions/shortcuts</code>';
+				instructions = 'To change key assignments, go to <strong>chrome://extensions/shortcuts</strong>';
 				break;
 			case 'brave':
-				instructions = 'To change key assignments, go to <code>brave://extensions/shortcuts</code>';
+				instructions = 'To change key assignments, go to <strong>brave://extensions/shortcuts</strong>';
 				break;
 			case 'firefox':
-				instructions = 'To change key assignments, go to <code>about:addons</code>, click the gear icon, and select "Manage Extension Shortcuts".';
+				instructions = 'To change key assignments, go to <strong>about:addons</strong>, click the gear icon, and select "Manage Extension Shortcuts".';
 				break;
 			case 'edge':
-				instructions = 'To change key assignments, go to <code>edge://extensions/shortcuts</code>';
+				instructions = 'To change key assignments, go to <strong>edge://extensions/shortcuts</strong>';
 				break;
 			case 'safari':
 			case 'mobile-safari':
@@ -97,6 +101,8 @@ export function initializeGeneralSettings(): void {
 		initializeToggles();
 		setShortcutInstructions();
 		initializeAutoSave();
+		initializeResetDefaultTemplateButton();
+		initializeExportImportAllSettingsButtons();
 	});
 }
 
@@ -211,5 +217,44 @@ function initializeSilentOpenToggle(): void {
 		silentOpenToggle.addEventListener('change', () => {
 			saveSettings({ silentOpen: silentOpenToggle.checked });
 		});
+	}
+}
+
+function initializeResetDefaultTemplateButton(): void {
+	const resetDefaultTemplateBtn = document.getElementById('reset-default-template-btn');
+	if (resetDefaultTemplateBtn) {
+		resetDefaultTemplateBtn.addEventListener('click', resetDefaultTemplate);
+	}
+}
+
+export function resetDefaultTemplate(): void {
+	const defaultTemplate = createDefaultTemplate();
+	const currentTemplates = getTemplates();
+	const defaultIndex = currentTemplates.findIndex((t: Template) => t.name === 'Default');
+	
+	if (defaultIndex !== -1) {
+		currentTemplates[defaultIndex] = defaultTemplate;
+	} else {
+		currentTemplates.unshift(defaultTemplate);
+	}
+
+	saveTemplateSettings().then(() => {
+		updateTemplateList();
+		showTemplateEditor(defaultTemplate);
+	}).catch(error => {
+		console.error('Failed to reset default template:', error);
+		alert('Failed to reset default template. Please try again.');
+	});
+}
+
+function initializeExportImportAllSettingsButtons(): void {
+	const exportAllSettingsBtn = document.getElementById('export-all-settings-btn');
+	if (exportAllSettingsBtn) {
+		exportAllSettingsBtn.addEventListener('click', exportAllSettings);
+	}
+
+	const importAllSettingsBtn = document.getElementById('import-all-settings-btn');
+	if (importAllSettingsBtn) {
+		importAllSettingsBtn.addEventListener('click', importAllSettings);
 	}
 }

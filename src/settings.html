@@ -15,6 +15,7 @@
 						<li class="sidebar-heading">Settings</li>
 						<li data-section="general" class="active">General</li>
 						<li data-section="interpreter" display="none">Interpreter</li>
+						<li data-section="properties">Properties</li>
 						<li class="sidebar-heading">Templates</li>
 					</ul>
 					<button type="button" id="new-template-btn" class="mod-cta">New&nbsp;template</button>
@@ -40,7 +41,7 @@
 						<form id="general-settings-form">
 								<div>
 									<h3>Vaults</h3>
-									<div class="setting-item-description">By default, clipped notes are saved to the currently open vault. You can add vaults here if you want the option to save to different vaults. Vault names must exactly match the name of the Obsidian vault. Press enter to add a&nbsp;vault.</div>
+									<div class="setting-item-description">By default, clipped notes are saved to the currently open vault. You can add vaults here if you want the option to save to different vaults. Vault names must exactly match the name of the Obsidian vault. Press <strong>enter</strong> to add a&nbsp;vault.</div>
 									<input type="text" id="vault-input" placeholder="Press enter to add a vault" autocomplete="off" spellcheck="false" />
 									<ul id="vault-list"></ul>
 								</div>
@@ -113,22 +114,39 @@
 											<button type="button" id="reset-default-template-btn" class="mod-warning">Reset</button>
 										</div>
 									</div>
+									<div class="setting-item mod-horizontal">
+										<div class="setting-item-info">
+											<label for="export-all-settings-btn">Export all settings</label>
+											<div class="setting-item-description">Export all settings including templates and properties.</div>
+										</div>
+										<div class="setting-item-control">
+											<button type="button" id="export-all-settings-btn">Export</button>
+										</div>
+									</div>
+									<div class="setting-item mod-horizontal">
+										<div class="setting-item-info">
+											<label for="import-all-settings-btn">Import all settings</label>
+											<div class="setting-item-description">Import all settings including templates and properties. This will replace your current configuration.</div>
+										</div>
+										<div class="setting-item-control">
+											<button type="button" id="import-all-settings-btn">Import</button>
+										</div>
+									</div>
 								</div>
 						</form>
 					</div>
 
 					<div id="interpreter-section" class="settings-section">
 						<div class="settings-section-header">
-							<h2>Interpreter settings</h2>
+							<h2>Interpreter</h2>
 						</div>
 						<form id="interpreter-settings-form">
 							<div>
-								<h3>Interpreter</h3>
 								<div class="setting-item mod-horizontal">
 									<div class="setting-item-info">
 										<label for="interpreter-toggle">Enable interpreter</label>
 										<div class="setting-item-description">
-											Allows you to use prompt variables in your templates, to fill in information using natural language such as <code>{{prompt:"a summary of the page"}}</code>. Requires an API&nbsp;key.
+											Use natural language to extract data from pages. For example, you can use the template syntax <strong>{{prompt:"a summary of the page"}}</strong>. Requires an API&nbsp;key or local&nbsp;model.
 										</div>
 									</div>
 									<div class="setting-item-control">
@@ -185,6 +203,51 @@
 						</form>
 					</div>
 
+					<div id="properties-section" class="settings-section">
+						<div class="settings-section-header">
+							<h2>Properties</h2>
+						</div>
+						<form id="property-types-form">
+							<div>
+								<div class="setting-item mod-horizontal">
+									<div class="setting-item-info">
+										<label for="import-types-btn">Import properties</label>
+										<div class="setting-item-description">To import your properties from Obsidian, locate the <strong>types.json</strong> file in the <strong>.obsidian</strong> folder within your vault. Note this folder is hidden by default on most operating systems.</div>
+									</div>
+									<div class="setting-item-control">
+										<button type="button" id="import-types-btn">Import</button>
+									</div>
+								</div>
+								<div class="setting-item mod-horizontal">
+									<div class="setting-item-info">
+										<label for="export-types-btn">Export properties</label>
+										<div class="setting-item-description">Save Web Clipper properties to a <strong>types.json</strong> file that can be imported into your Obsidian vault, or into Web Clipper on other devices.</div>
+									</div>
+									<div class="setting-item-control">
+										<button type="button" id="export-types-btn">Export</button>
+									</div>
+								</div>
+								<div class="setting-item mod-horizontal">
+									<div class="setting-item-info">
+										<label for="delete-unused-properties-btn">Remove unused properties</label>
+										<div class="setting-item-description">Remove all properties that are not used in any template.</div>
+									</div>
+									<div class="setting-item-control">
+										<button type="button" id="delete-unused-properties-btn">Remove</button>
+									</div>
+								</div>
+							</div>
+							<div>
+								<h3>All properties</h3>
+								<div class="add-btn" style="display: none;">
+									<a id="add-property-type-btn">+ Add property</a>
+								</div>
+								<div id="property-types-list" class="properties-list"></div>
+							</div>
+							
+						</form>
+					</div>
+
 					<div id="templates-section" class="settings-section">
 						<div class="settings-section-header">
 							<h2 id="template-editor-title">Edit template</h2>
@@ -200,6 +263,14 @@
 											</div>
 											<div class="menu-item-title">
 												Duplicate
+											</div>
+										</div>
+										<div class="menu-item" id="copy-template-json-btn">
+											<div class="menu-item-icon">
+												<i data-lucide="clipboard-list"></i>
+											</div>
+											<div class="menu-item-title">
+												Copy as JSON
 											</div>
 										</div>
 										<div class="menu-item export-template-btn dkh">
@@ -229,9 +300,6 @@
 									</div>
 								</div>
 							</div>
-						</div>
-						<div id="template-drop-zone" class="template-drop-zone">
-							<p>Import template</p>
 						</div>
 						<form id="template-settings-form">
 							<div id="template-editor">
@@ -282,7 +350,7 @@
 								<div id="properties-container">
 									<label>Properties</label>
 									<div class="setting-item-description">Properties to add to the top of the clipped note. Use variables to pre-populate data from the&nbsp;page.</div>
-									<div id="template-properties"></div>
+									<div id="template-properties" class="properties-list"></div>
 									<div class="add-btn metadata-add-btn"><a id="add-property-btn">+ Add property</a></div>
 								</div>
 								<div class="setting-item">
@@ -298,6 +366,28 @@
 							</div>
 						</form>
 					</div>
+				</div>
+			</div>
+		</div>
+
+		<div id="import-modal" class="modal-container">
+			<div class="modal-bg"></div>
+			<div class="modal">
+				<div class="modal-header">
+					<div class="modal-title">Import</div>
+				</div>
+				<div class="modal-content">
+					<div class="import-options">
+						<div class="import-drop-zone import-option">
+							<p>Drag and drop file here</p>
+						</div>
+						<p>Or paste content below</p>
+						<textarea class="import-json-textarea" placeholder="Paste JSON here"></textarea>
+					</div>
+				</div>
+				<div class="modal-button-container">
+					<button class="import-confirm-btn mod-cta">Import</button>
+					<button class="import-cancel-btn">Cancel</button>
 				</div>
 			</div>
 		</div>

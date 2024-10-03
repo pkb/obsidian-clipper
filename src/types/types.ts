@@ -15,7 +15,7 @@ export interface Property {
 	id: string;
 	name: string;
 	value: string;
-	type: string;
+	type?: string;
 }
 
 export interface ExtractedContent {
@@ -28,4 +28,10 @@ export interface PromptVariable {
 	key: string;
 	prompt: string;
 	filters?: string;
+}
+
+export interface PropertyType {
+	name: string;
+	type: string;
+	defaultValue?: string;
 }

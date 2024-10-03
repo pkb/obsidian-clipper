@@ -1,6 +1,4 @@
-Official Obsidian browser extension. Available for [Chrome](https://chromewebstore.google.com/detail/obsidian-web-clipper/cnjifjpddelmedmihgijeibhnjfabmlf), [Firefox](https://addons.mozilla.org/en-US/firefox/addon/web-clipper-obsidian/), Edge, Brave, and Arc. Support for Safari to come.
-
-⚠️ **Obsidian Clipper is still in beta and requires Obsidian 1.7.2.** If you see an empty note after clicking **Add to Obsidian** please make sure you are using Obsidian 1.7.2 or above, which currently is an [early access version](https://help.obsidian.md/Obsidian/Early+access+versions).
+⚠️ **Obsidian Web Clipper is still in beta and requires Obsidian 1.7.2.** Please make sure you are using Obsidian 1.7.2 or above, which currently is an [early access version](https://help.obsidian.md/Obsidian/Early+access+versions).
 
 ## Changes to Upstream
 
@@ -22,14 +20,15 @@ Official Obsidian browser extension. Available for [Chrome](https://chromewebsto
 
 - **Customizable templates.** Create templates to automatically extract and organize metadata from web pages.
 - **Smart triggers.** Set up rules to automatically apply the right template based on the website you're clipping from.
-- **Plain text.** All your clips are saved in clean, durable, portable Markdown format — no proprietary formats, no lock-in, and available to you offline.
+- **No lock-in.** All your clips are saved in clean, durable, portable Markdown format — no proprietary formats, no lock-in, and available to you offline.
 
 ## Getting started
 
 Install the extension by downloading it from the official directory for your browser:
 
-- **[Chrome Web Store](https://chromewebstore.google.com/detail/obsidian-web-clipper/cnjifjpddelmedmihgijeibhnjfabmlf)**
-- **[Firefox Add-Ons](https://addons.mozilla.org/en-US/firefox/addon/web-clipper-obsidian/)**
+- **[Chrome Web Store](https://chromewebstore.google.com/detail/obsidian-web-clipper/cnjifjpddelmedmihgijeibhnjfabmlf)** for Chrome, Brave, Edge, Arc, and other Chromium-based browsers.
+- **[Firefox Add-Ons](https://addons.mozilla.org/en-US/firefox/addon/web-clipper-obsidian/)** for Firefox and Firefox Mobile.
+- **[Safari Extensions](https://apps.apple.com/us/app/obsidian-web-clipper/id6720708363)** for macOS, iOS, and iPadOS.
 
 If you want to install the extension manually, go to [releases](https://github.com/obsidianmd/obsidian-clipper/releases) and download the latest version.
 
@@ -82,11 +81,11 @@ You can combine different types of patterns for a single template. The first mat
 
 ### Template variables
 
-Template variables can be used to automatically pre-populate data from the page in a template. Variables can be used in the **note name**, **note location**, **properties**, and **note content**. Use the `...` icon in the extension popup to access the current page variable for use in templates.
+Template variables can be used to automatically pre-populate data from the page in a template. Variables can be used in the **note name**, **note location**, **properties**, and **note content**. Use the `...` icon in the extension popup to access the current page variable for use in templates. There are several types of variables you can use: preset variables, meta variables, selector variables, and schema variables.
 
-#### Page variables
+#### Preset variables
 
-These variables are automatically generated based on the page content. The main content variable is `{{content}}`, which contains the article content or the selection if there is any selected text on the page.
+Preset variables are automatically generated based on the page content. These should work for nearly all websites. The main content variable is `{{content}}`, which contains the article content or the selection if there is any selected text on the page. Note that `{{content}}` attempts to extract the main content of the page, which may not always be what you want. In that case, you can use other preset variables or selector variables to extract the content you need.
 
 | Variable            | Description                                          |
 | ------------------- | ---------------------------------------------------- |
@@ -106,14 +105,14 @@ These variables are automatically generated based on the page content. The main 
 
 #### Meta variables
 
-Meta variables allow you to extract data from meta tags in the page.
+Meta variables allow you to extract data from meta tags in the page, including Open Graph data used to populate social share previews.
 
 - `{{meta:name}}` returns the content of the meta name tag with the given name, e.g. `{{meta:name:description}}` for the `description` meta tag.
 - `{{meta:property}}` returns the content of the meta property tag with the given property, e.g. `{{meta:property:og:title}}` for the `og:title` meta tag.
 
 #### Selector variables
 
-Selector variables allow you to extract text content from elements on the page using the syntax `{{selector:cssSelector?attribute}}`, where `?attribute` is optional. If no attribute is specified, the text content of the element is returned. You can also use `{{selectorHtml:cssSelector}}` to get the HTML content of the element.
+Selector variables allow you to extract text content from elements on the page using the syntax `{{selector:cssSelector?attribute}}`, where `?attribute` is optional. If no attribute is specified, the text content of the element is returned. You can also use `{{selectorHtml:cssSelector}}` to get the HTML content of the element. Selector variables tend to work best on a specific website or set of websites that have consistent HTML structure.
 
 - `{{selector:h1}}` returns text content of the first `h1` element on the page.
 - `{{selector:.author}}` returns text content of the first `.author` element on the page.
@@ -268,15 +267,16 @@ Filters allow you to modify variables in a template. Filters are applied to vari
 
 ## Building the extension
 
-To build the extension for Chromium browsers and Firefox:
+To build the extension:
 
 ```
 npm run build
 ```
 
-This will create two directories:
+This will create three directories:
 - `dist/` for the Chromium version
 - `dist_firefox/` for the Firefox version
+- `dist_safari/` for the Safari version
 
 ### Installing in Chrome, Brave, Edge, and Arc
 

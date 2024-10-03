@@ -1,15 +1,14 @@
 import { Template, Property } from '../types/types';
-import { templates, editingTemplateIndex, saveTemplateSettings, getTemplates, setEditingTemplateIndex } from './template-manager';
+import { deleteTemplate, templates, editingTemplateIndex, saveTemplateSettings, setEditingTemplateIndex, loadTemplates } from './template-manager';
 import { initializeIcons, getPropertyTypeIcon } from '../icons/icons';
-import { escapeValue, escapeHtml, unescapeValue } from '../utils/string-utils';
+import { escapeValue, unescapeValue } from '../utils/string-utils';
 import { generalSettings } from '../utils/storage-utils';
 import { updateUrl } from '../utils/routing';
 import { handleDragStart, handleDragOver, handleDrop, handleDragEnd } from '../utils/drag-and-drop';
-import browser from '../utils/browser-polyfill';
 import { createElementWithClass, createElementWithHTML } from '../utils/dom-utils';
 import { updatePromptContextVisibility } from './interpreter-settings';
 import { showSettingsSection } from './settings-section-ui';
-
+import { updatePropertyType } from './property-types-manager';
 let hasUnsavedChanges = false;
 
 export function resetUnsavedChanges(): void {
@@ -25,104 +24,105 @@ export function updateTemplateList(loadedTemplates?: Template[]): void {
 	
 	const templatesToUse = loadedTemplates || templates;
 	
+	// Filter out null or undefined templates
+	const validTemplates = templatesToUse.filter((template): template is Template => 
+		template != null && typeof template === 'object' && 'id' in template && 'name' in template
+	);
+
 	templateList.innerHTML = '';
-	templatesToUse.forEach((template, index) => {
-		if (template && template.name && template.id) {
-			const li = document.createElement('li');
-			
-			const dragHandle = createElementWithClass('div', 'drag-handle');
-			dragHandle.appendChild(createElementWithHTML('i', '', { 'data-lucide': 'grip-vertical' }));
-			li.appendChild(dragHandle);
+	validTemplates.forEach((template, index) => {
+		const li = document.createElement('li');
+		
+		const dragHandle = createElementWithClass('div', 'drag-handle');
+		dragHandle.appendChild(createElementWithHTML('i', '', { 'data-lucide': 'grip-vertical' }));
+		li.appendChild(dragHandle);
 
-			const templateName = createElementWithClass('span', 'template-name');
-			templateName.textContent = template.name;
-			li.appendChild(templateName);
+		const templateName = createElementWithClass('span', 'template-name');
+		templateName.textContent = template.name;
+		li.appendChild(templateName);
 
-			const deleteBtn = createElementWithClass('button', 'delete-template-btn clickable-icon');
-			deleteBtn.setAttribute('type', 'button');
-			deleteBtn.setAttribute('aria-label', 'Delete template');
-			deleteBtn.appendChild(createElementWithHTML('i', '', { 'data-lucide': 'trash-2' }));
-			li.appendChild(deleteBtn);
+		const deleteBtn = createElementWithClass('button', 'delete-template-btn clickable-icon');
+		deleteBtn.setAttribute('type', 'button');
+		deleteBtn.setAttribute('aria-label', 'Delete template');
+		deleteBtn.appendChild(createElementWithHTML('i', '', { 'data-lucide': 'trash-2' }));
+		li.appendChild(deleteBtn);
 
-			li.dataset.id = template.id;
-			li.dataset.index = index.toString();
-			li.draggable = true;
+		li.dataset.id = template.id;
+		li.dataset.index = index.toString();
+		li.draggable = true;
 
-			let touchStartTime: number;
-			let touchStartY: number;
+		let touchStartTime: number;
+		let touchStartY: number;
 
-			li.addEventListener('touchstart', (e) => {
-				touchStartTime = Date.now();
-				touchStartY = e.touches[0].clientY;
-			});
+		li.addEventListener('touchstart', (e) => {
+			touchStartTime = Date.now();
+			touchStartY = e.touches[0].clientY;
+		});
 
-			li.addEventListener('touchend', (e) => {
-				const touchEndY = e.changedTouches[0].clientY;
-				const touchDuration = Date.now() - touchStartTime;
-				const touchDistance = Math.abs(touchEndY - touchStartY);
+		li.addEventListener('touchend', (e) => {
+			const touchEndY = e.changedTouches[0].clientY;
+			const touchDuration = Date.now() - touchStartTime;
+			const touchDistance = Math.abs(touchEndY - touchStartY);
 
-				if (touchDuration < 300 && touchDistance < 10) {
-					const target = e.target as HTMLElement;
-					if (!target.closest('.delete-template-btn')) {
-						e.preventDefault();
-						showTemplateEditor(template);
-						// Add these lines to close the sidebar and deactivate the hamburger menu
-						const settingsContainer = document.getElementById('settings');
-						const hamburgerMenu = document.getElementById('hamburger-menu');
-						if (settingsContainer) {
-							settingsContainer.classList.remove('sidebar-open');
-						}
-						if (hamburgerMenu) {
-							hamburgerMenu.classList.remove('is-active');
-						}
-					}
-				}
-			});
-
-			// Keep the click event for non-touch devices
-			li.addEventListener('click', (e) => {
+			if (touchDuration < 300 && touchDistance < 10) {
 				const target = e.target as HTMLElement;
 				if (!target.closest('.delete-template-btn')) {
+					e.preventDefault();
 					showTemplateEditor(template);
+					// Add these lines to close the sidebar and deactivate the hamburger menu
+					const settingsContainer = document.getElementById('settings');
+					const hamburgerMenu = document.getElementById('hamburger-menu');
+					if (settingsContainer) {
+						settingsContainer.classList.remove('sidebar-open');
+					}
+					if (hamburgerMenu) {
+						hamburgerMenu.classList.remove('is-active');
+					}
 				}
-			});
-
-			deleteBtn.addEventListener('click', (e) => {
-				e.stopPropagation();
-				deleteTemplateFromList(template.id);
-			});
-			
-			if (index === editingTemplateIndex) {
-				li.classList.add('active');
 			}
-			templateList.appendChild(li);
-		} else {
-			console.error('Invalid template at index', index, ':', template);
+		});
+
+		// Keep the click event for non-touch devices
+		li.addEventListener('click', (e) => {
+			const target = e.target as HTMLElement;
+			if (!target.closest('.delete-template-btn')) {
+				showTemplateEditor(template);
+			}
+		});
+
+		deleteBtn.addEventListener('click', (e) => {
+			e.stopPropagation();
+			deleteTemplateFromList(template.id);
+		});
+		
+		if (index === editingTemplateIndex) {
+			li.classList.add('active');
 		}
+		templateList.appendChild(li);
 	});
+
+	// If any invalid templates were found and removed, save the changes
+	if (validTemplates.length !== templatesToUse.length) {
+		saveTemplateSettings();
+	}
+
 	initializeIcons(templateList);
 }
 
 // Rename this function to make it clear it's for deleting from the list
-function deleteTemplateFromList(templateId: string): void {
-	const index = templates.findIndex(t => t.id === templateId);
-	if (index !== -1) {
-		if (confirm(`Are you sure you want to delete the template "${templates[index].name}"?`)) {
-			templates.splice(index, 1);
-
-			if (editingTemplateIndex === index) {
-				if (templates.length > 0) {
-					const newIndex = Math.max(0, index - 1);
-					showTemplateEditor(templates[newIndex]);
-				} else {
-					clearTemplateEditor();
-				}
-			} else if (editingTemplateIndex > index) {
-				setEditingTemplateIndex(editingTemplateIndex - 1);
+async function deleteTemplateFromList(templateId: string): Promise<void> {
+	if (confirm(`Are you sure you want to delete this template?`)) {
+		const success = await deleteTemplate(templateId);
+		if (success) {
+			const updatedTemplates = await loadTemplates(); // Use the returned value
+			updateTemplateList(updatedTemplates);
+			if (updatedTemplates.length > 0) {
+				showTemplateEditor(updatedTemplates[0]);
+			} else {
+				showSettingsSection('general');
 			}
-			
-			saveTemplateSettings();
-			updateTemplateList();
+		} else {
+			alert('Failed to delete template. Please try again.');
 		}
 	}
 }
@@ -191,8 +191,10 @@ export function showTemplateEditor(template: Template | null): void {
 		behaviorSelect.addEventListener('change', updateBehaviorFields);
 	}
 
+	refreshPropertyNameSuggestions();
+
 	if (editingTemplate && Array.isArray(editingTemplate.properties)) {
-		editingTemplate.properties.forEach(property => addPropertyToEditor(property.name, property.value, property.type, property.id));
+		editingTemplate.properties.forEach(property => addPropertyToEditor(property.name, property.value, property.id));
 	}
 
 	const triggersTextarea = document.getElementById('url-patterns') as HTMLTextAreaElement;
@@ -277,7 +279,7 @@ function updateBehaviorFields(): void {
 	}
 }
 
-export function addPropertyToEditor(name: string = '', value: string = '', type: string = 'text', id: string | null = null): void {
+export function addPropertyToEditor(name: string = '', value: string = '', id: string | null = null): void {
 	const templateProperties = document.getElementById('template-properties');
 	if (!templateProperties) return;
 
@@ -291,8 +293,9 @@ export function addPropertyToEditor(name: string = '', value: string = '', type:
 
 	const propertySelectDiv = createElementWithClass('div', 'property-select');
 	const propertySelectedDiv = createElementWithClass('div', 'property-selected');
-	propertySelectedDiv.dataset.value = type;
-	propertySelectedDiv.appendChild(createElementWithHTML('i', '', { 'data-lucide': getPropertyTypeIcon(type) }));
+	const propertyType = generalSettings.propertyTypes.find(p => p.name === name)?.type || 'text';
+	propertySelectedDiv.dataset.value = propertyType;
+	propertySelectedDiv.appendChild(createElementWithHTML('i', '', { 'data-lucide': getPropertyTypeIcon(propertyType) }));
 	propertySelectDiv.appendChild(propertySelectedDiv);
 
 	const select = document.createElement('select');
@@ -304,6 +307,7 @@ export function addPropertyToEditor(name: string = '', value: string = '', type:
 		option.textContent = optionValue.charAt(0).toUpperCase() + optionValue.slice(1);
 		select.appendChild(option);
 	});
+	select.value = propertyType;
 	propertySelectDiv.appendChild(select);
 	propertyDiv.appendChild(propertySelectDiv);
 
@@ -314,9 +318,21 @@ export function addPropertyToEditor(name: string = '', value: string = '', type:
 		value: name,
 		placeholder: 'Property name',
 		autocapitalize: 'off',
-		autocomplete: 'off'
+		autocomplete: 'off',
+		list: 'property-name-suggestions'
 	});
 	propertyDiv.appendChild(nameInput);
+
+	// Create datalist for autocomplete if it doesn't exist
+	let datalist = document.getElementById('property-name-suggestions');
+	if (!datalist) {
+		datalist = document.createElement('datalist');
+		datalist.id = 'property-name-suggestions';
+		document.body.appendChild(datalist);
+	}
+
+	// Populate datalist with existing property types
+	updatePropertyNameSuggestions();
 
 	const valueInput = createElementWithHTML('input', '', {
 		type: 'text',
@@ -324,7 +340,7 @@ export function addPropertyToEditor(name: string = '', value: string = '', type:
 		id: `${propertyId}-value`,
 		value: unescapeValue(value),
 		placeholder: 'Property value'
-	});
+	}) as HTMLInputElement;
 	propertyDiv.appendChild(valueInput);
 
 	const removeBtn = createElementWithClass('button', 'remove-property-btn clickable-icon');
@@ -358,10 +374,14 @@ export function addPropertyToEditor(name: string = '', value: string = '', type:
 	propertyDiv.addEventListener('mouseup', resetDraggable);
 
 	if (select) {
-		select.value = type;
-
 		select.addEventListener('change', function() {
 			if (propertySelectedDiv) updateSelectedOption(this.value, propertySelectedDiv);
+			// Update the global property type
+			updatePropertyType(name, this.value).then(() => {
+				console.log(`Property type for ${name} updated to ${this.value}`);
+			}).catch(error => {
+				console.error(`Failed to update property type for ${name}:`, error);
+			});
 		});
 	}
 
@@ -376,9 +396,33 @@ export function addPropertyToEditor(name: string = '', value: string = '', type:
 	propertyDiv.addEventListener('drop', handleDrop);
 	propertyDiv.addEventListener('dragend', handleDragEnd);
 
-	updateSelectedOption(type, propertySelectedDiv);
+	updateSelectedOption(propertyType, propertySelectedDiv);
 
 	initializeIcons(propertyDiv);
+
+	nameInput.addEventListener('input', function(this: HTMLInputElement) {
+		const selectedType = generalSettings.propertyTypes.find(pt => pt.name === this.value);
+		if (selectedType) {
+			select.value = selectedType.type;
+			updateSelectedOption(selectedType.type, propertySelectedDiv);
+			
+			// Fill in the default value if it exists and the value input is empty
+			if (selectedType.defaultValue && !valueInput.value) {
+				valueInput.value = selectedType.defaultValue;
+			}
+		}
+	});
+
+	// Add a change event listener to handle selection from autocomplete
+	nameInput.addEventListener('change', function(this: HTMLInputElement) {
+		const selectedType = generalSettings.propertyTypes.find(pt => pt.name === this.value);
+		if (selectedType) {
+			// Fill in the default value if it exists, regardless of current value
+			if (selectedType.defaultValue) {
+				valueInput.value = selectedType.defaultValue;
+			}
+		}
+	});
 }
 
 function updateSelectedOption(value: string, propertySelected: HTMLElement): void {
@@ -497,4 +541,20 @@ function getUniqueTemplateName(baseName: string): string {
 	}
 
 	return newName;
+}
+
+function updatePropertyNameSuggestions(): void {
+	const datalist = document.getElementById('property-name-suggestions');
+	if (datalist) {
+		datalist.innerHTML = '';
+		generalSettings.propertyTypes.forEach(pt => {
+			const option = document.createElement('option');
+			option.value = pt.name;
+			datalist.appendChild(option);
+		});
+	}
+}
+
+export function refreshPropertyNameSuggestions(): void {
+	updatePropertyNameSuggestions();
 }

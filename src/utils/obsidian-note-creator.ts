@@ -8,7 +8,9 @@ export async function generateFrontmatter(properties: Property[]): Promise<strin
 	for (const property of properties) {
 		frontmatter += `${property.name}:`;
 
-		switch (property.type) {
+		const propertyType = generalSettings.propertyTypes.find(p => p.name === property.name)?.type || 'text';
+
+		switch (propertyType) {
 			case 'multitext':
 				let items: string[];
 				if (property.value.trim().startsWith('["') && property.value.trim().endsWith('"]')) {
@@ -37,7 +39,8 @@ export async function generateFrontmatter(properties: Property[]): Promise<strin
 				frontmatter += numericValue ? ` ${parseFloat(numericValue)}\n` : '\n';
 				break;
 			case 'checkbox':
-				frontmatter += ` ${property.value.toLowerCase() === 'true' || property.value === '1'}\n`;
+				const isChecked = typeof property.value === 'boolean' ? property.value : property.value === 'true';
+				frontmatter += ` ${isChecked}\n`;
 				break;
 			case 'date':
 			case 'datetime':

@@ -2,8 +2,6 @@ export function initializeMenu(menuBtnId: string, menuId: string): void {
 	const moreActionsBtn = document.getElementById(menuBtnId) as HTMLButtonElement;
 	const menu = document.getElementById(menuId) as HTMLElement;
 
-	console.log('Initializing menu:', { menuBtnId, menuId, moreActionsBtn, menu });
-
 	if (moreActionsBtn && menu) {
 		moreActionsBtn.addEventListener('click', (event) => {
 			console.log('More actions button clicked');
@@ -16,6 +14,12 @@ export function initializeMenu(menuBtnId: string, menuId: string): void {
 			if (!menu.contains(event.target as Node)) {
 				closeMenu(menu);
 			}
+		});
+
+		menu.querySelectorAll('.menu-item').forEach(item => {
+			item.addEventListener('click', () => {
+				closeMenu(menu);
+			});
 		});
 	} else {
 		console.error('Menu button or menu element not found:', { menuBtnId, menuId });
