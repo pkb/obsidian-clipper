@@ -17,7 +17,7 @@ import { debugLog } from '../utils/debug';
 import { showVariables, initializeVariablesPanel, updateVariablesPanel } from '../managers/inspect-variables';
 import { ensureContentScriptLoaded } from '../utils/content-script-utils';
 import { isBlankPage, isValidUrl } from '../utils/active-tab-manager';
-import { memoize, memoizeWithExpiration } from '../utils/memoize';
+import { memoizeWithExpiration } from '../utils/memoize';
 import { debounce } from '../utils/debounce';
 
 let loadedSettings: Settings;
@@ -35,7 +35,11 @@ const memoizedReplaceVariables = memoizeWithExpiration(
 	async (tabId: number, template: string, variables: { [key: string]: string }, currentUrl: string) => {
 		return replaceVariables(tabId, template, variables, currentUrl);
 	},
-	{ expirationMs: 5000, keyFn: (tabId, template, variables, currentUrl) => `${tabId}-${template}-${currentUrl}` }
+	{
+		expirationMs: 5000,
+		keyFn: (tabId: number, template: string, variables: { [key: string]: string }, currentUrl: string) => 
+			`${tabId}-${template}-${currentUrl}`
+	}
 );
 
 // Memoize generateFrontmatter with a longer expiration
@@ -54,14 +58,14 @@ const memoizedExtractPageContent = memoizeWithExpiration(
 	},
 	{ 
 		expirationMs: 5000, 
-		keyFn: async (tabId) => {
+		keyFn: async (tabId: number) => {
 			const tab = await browser.tabs.get(tabId);
 			return `${tabId}-${tab.url}`;
 		}
 	}
 );
 
-// Add this variable to keep track of the previous width
+// Width is used to update the note name field height
 let previousWidth = window.innerWidth;
 
 function setPopupDimensions() {
@@ -97,12 +101,13 @@ async function initializeExtension(tabId: number) {
 		// First, add the browser class to allow browser-specific styles to apply
 		await addBrowserClassToHtml();
 		
-		// Set an initial large height to allow the browser to determine the maximum
+		// Set an initial large height to allow the browser to determine the maximum height
+		// This is necessary for browsers that allow scaling the popup via page zoom
 		document.documentElement.style.setProperty('--popup-height', '2000px');
 		
 		// Use setTimeout to ensure the DOM has updated before we measure
 		setTimeout(() => {
-			setPopupDimensions(); // Call the non-debounced version initially
+			setPopupDimensions();
 		}, 0);
 
 		loadedSettings = await loadSettings();
@@ -134,6 +139,7 @@ async function initializeExtension(tabId: number) {
 			lastSelectedVault = loadedSettings.vaults[0];
 		}
 		debugLog('Vaults', 'Last selected vault:', lastSelectedVault);
+		updateVaultDropdown(loadedSettings.vaults);
 
 		const tab = await browser.tabs.get(tabId);
 		if (!tab.url || isBlankPage(tab.url)) {
@@ -220,12 +226,12 @@ function setupMessageListeners() {
 }
 
 document.addEventListener('DOMContentLoaded', async function() {
-	initializeIcons();
 	const refreshButton = document.getElementById('refresh-pane');
 	if (refreshButton) {
 		refreshButton.addEventListener('click', (e) => {
 			e.preventDefault();
 			refreshPopup();
+			initializeIcons(refreshButton);
 		});
 	}
 	const settingsButton = document.getElementById('open-settings');
@@ -238,6 +244,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 				setTimeout(() => window.close(), 50);
 			}
 		});
+		initializeIcons(settingsButton);
 	}
 
 	const tabs = await browser.tabs.query({active: true, currentWindow: true});
@@ -585,7 +592,15 @@ async function initializeTemplateFields(currentTabId: number, template: Template
 		return;
 	}
 
-	initializeIcons();
+	// Handle vault selection
+	const vaultDropdown = document.getElementById('vault-select') as HTMLSelectElement;
+	if (vaultDropdown) {
+		if (template.vault) {
+			vaultDropdown.value = template.vault;
+		} else if (lastSelectedVault) {
+			vaultDropdown.value = lastSelectedVault;
+		}
+	}
 
 	currentVariables = variables;
 	const existingTemplateProperties = document.querySelector('.metadata-properties') as HTMLElement;
@@ -599,16 +614,6 @@ async function initializeTemplateFields(currentTabId: number, template: Template
 	if (!Array.isArray(template.properties)) {
 		logError('Template properties are not an array');
 		return;
-	}
-
-	// Handle vault selection
-	const vaultDropdown = document.getElementById('vault-select') as HTMLSelectElement;
-	if (vaultDropdown) {
-		if (template.vault) {
-			vaultDropdown.value = template.vault;
-		} else if (lastSelectedVault) {
-			vaultDropdown.value = lastSelectedVault;
-		}
 	}
 
 	for (const property of template.properties) {
@@ -641,12 +646,16 @@ async function initializeTemplateFields(currentTabId: number, template: Template
 		}
 
 		propertyDiv.innerHTML = `
-			<span class="metadata-property-icon"><i data-lucide="${getPropertyTypeIcon(propertyType)}"></i></span>
-			<label for="${property.name}">${property.name}</label>
-			${propertyType === 'checkbox' 
-				? `<input id="${property.name}" type="checkbox" ${value === 'true' ? 'checked' : ''} data-type="${propertyType}" data-template-value="${escapeHtml(property.value)}" />`
-				: `<input id="${property.name}" type="text" value="${escapeHtml(value)}" data-type="${propertyType}" data-template-value="${escapeHtml(property.value)}" />`
-			}
+			<div class="metadata-property-key">
+				<span class="metadata-property-icon"><i data-lucide="${getPropertyTypeIcon(propertyType)}"></i></span>
+				<label for="${property.name}">${property.name}</label>
+			</div>
+			<div class="metadata-property-value">
+				${propertyType === 'checkbox' 
+					? `<input id="${property.name}" type="checkbox" ${value === 'true' ? 'checked' : ''} data-type="${propertyType}" data-template-value="${escapeHtml(property.value)}" />`
+					: `<input id="${property.name}" type="text" value="${escapeHtml(value)}" data-type="${propertyType}" data-template-value="${escapeHtml(property.value)}" />`
+				}
+			</div>
 		`;
 		newTemplateProperties.appendChild(propertyDiv);
 	}
@@ -662,7 +671,7 @@ async function initializeTemplateFields(currentTabId: number, template: Template
 	newTemplateProperties.style.position = '';
 	newTemplateProperties.style.left = '';
 
-	initializeIcons();
+	initializeIcons(newTemplateProperties);
 
 	const noteNameField = document.getElementById('note-name-field') as HTMLTextAreaElement;
 	if (noteNameField) {

@@ -4,6 +4,7 @@ const CopyPlugin = require('copy-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const ZipPlugin = require('zip-webpack-plugin');
 const package = require('./package.json');
+const webpack = require('webpack');
 
 // Remove .DS_Store files
 function removeDSStore(dir) {
@@ -21,11 +22,21 @@ function removeDSStore(dir) {
 module.exports = (env, argv) => {
 	const isFirefox = env.BROWSER === 'firefox';
 	const isSafari = env.BROWSER === 'safari';
-	const outputDir = isFirefox ? 'dist_firefox' : (isSafari ? 'dist_safari' : 'dist');
+	const isProduction = argv.mode === 'production';
+
+	const getOutputDir = () => {
+		if (isProduction) {
+			return isFirefox ? 'dist_firefox' : (isSafari ? 'dist_safari' : 'dist');
+		} else {
+			return isFirefox ? 'dev_firefox' : (isSafari ? 'dev_safari' : 'dev');
+		}
+	};
+
+	const outputDir = getOutputDir();
 	const browserName = isFirefox ? 'firefox' : (isSafari ? 'safari' : 'chrome');
 
 	return {
-		mode: 'production',
+		mode: argv.mode,
 		entry: {
 			popup: './src/core/popup.ts',
 			settings: './src/core/settings.ts',
@@ -38,7 +49,7 @@ module.exports = (env, argv) => {
 			filename: '[name].js',
 			module: true,
 		},
-		devtool: 'source-map',
+		devtool: isProduction ? false : 'source-map',
 		experiments: {
 			outputModule: true,
 		},
@@ -59,13 +70,13 @@ module.exports = (env, argv) => {
 						{
 							loader: 'css-loader',
 							options: {
-								sourceMap: true
+								sourceMap: !isProduction
 							}
 						},
 						{
 							loader: 'sass-loader',
 							options: {
-								sourceMap: true
+								sourceMap: !isProduction
 							}
 						}
 					]
@@ -96,11 +107,17 @@ module.exports = (env, argv) => {
 						removeDSStore(path.resolve(__dirname, outputDir));
 					});
 				}
-				},
-			new ZipPlugin({
-				path: path.resolve(__dirname, 'builds'),
-				filename: `obsidian-web-clipper-${package.version}-${browserName}.zip`,
-			})
+			},
+			new webpack.DefinePlugin({
+				'process.env.NODE_ENV': JSON.stringify(argv.mode),
+				'DEBUG_MODE': JSON.stringify(!isProduction)
+			}),
+			...(isProduction ? [
+				new ZipPlugin({
+					path: path.resolve(__dirname, 'builds'),
+					filename: `obsidian-web-clipper-${package.version}-${browserName}.zip`,
+				})
+			] : [])
 		]
 	};
 };

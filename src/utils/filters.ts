@@ -35,6 +35,7 @@ import { template } from './filters/template';
 import { title } from './filters/title';
 import { trim } from './filters/trim';
 import { uncamel } from './filters/uncamel';
+import { unescape } from './filters/unescape';
 import { upper } from './filters/upper';
 import { text } from './filters/text';
 import { json } from './filters/json';
@@ -80,6 +81,7 @@ export const filters: { [key: string]: FilterFunction } = {
 	title,
 	trim,
 	uncamel,
+	unescape,
 	upper,
 	text,
 	json,

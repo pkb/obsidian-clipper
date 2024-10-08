@@ -14,7 +14,9 @@ const SUPPORTED_PROGRAMMING_LANGUAGES: Record<string, string> = {
     "html": "html",
     "css": "css",
     "xml": "xml"
-}
+};
+
+const footnotes: { [key: string]: string } = {};
 
 export function createMarkdownContent(content: string, url: string) {
 	debugLog('Markdown', 'Starting markdown conversion for URL:', url);
@@ -315,7 +317,8 @@ export function createMarkdownContent(content: string, url: string) {
 				return (
 					(node.nodeName === 'SUP' && node.classList.contains('reference')) ||
 					(node.nodeName === 'CITE' && node.classList.contains('ltx_cite')) ||
-					(node.nodeName === 'SUP' && node.id.startsWith('fnref:'))
+					(node.nodeName === 'SUP' && node.id.startsWith('fnref:')) ||
+					(node.nodeName === 'SPAN' && node.classList.contains('footnote-link'))
 				);
 			}
 			return false;
@@ -349,6 +352,36 @@ export function createMarkdownContent(content: string, url: string) {
 				} else if (node.nodeName === 'SUP' && node.id.startsWith('fnref:')) {
 					const id = node.id.replace('fnref:', '');
 					return `[^${id.toLowerCase()}]`;
+				} else if (node.nodeName === 'SPAN' && node.classList.contains('footnote-link')) {
+					const footnoteId = node.dataset.footnoteId;
+					if (footnoteId) {
+						return `[^${footnoteId}]`;
+					}
+				}
+			}
+			return content;
+		}
+	});
+
+	turndownService.addRule('inlineFootnotes', {
+		filter: (node: Node): boolean => {
+			return node instanceof HTMLElement && 
+					node.nodeName === 'SPAN' && 
+					node.classList.contains('footnote-link');
+		},
+		replacement: (content, node) => {
+			if (node instanceof HTMLElement) {
+				const footnoteId = node.dataset.footnoteId;
+				const footnoteContent = node.dataset.footnoteContent;
+				
+				if (footnoteId && footnoteContent) {
+					// Store the footnote content for later use
+					footnotes[footnoteId] = turndownService.turndown(
+						decodeURIComponent(footnoteContent.replace(/&lt;/g, '<').replace(/&gt;/g, '>'))
+					);
+					
+					// Return the footnote reference
+					return `[^${footnoteId}]`;
 				}
 			}
 			return content;
@@ -687,6 +720,17 @@ export function createMarkdownContent(content: string, url: string) {
 
 		// Remove any consecutive newlines more than two
 		markdown = markdown.replace(/\n{3,}/g, '\n\n');
+
+		// Append footnotes at the end of the document
+		if (Object.keys(footnotes).length > 0) {
+			markdown += '\n\n---\n\n';
+			for (const [id, content] of Object.entries(footnotes)) {
+				markdown += `[^${id}]: ${content}\n\n`;
+			}
+		}
+
+		// Clear the footnotes object for the next conversion
+		Object.keys(footnotes).forEach(key => delete footnotes[key]);
 
 		return markdown.trim();
 	} catch (error) {
