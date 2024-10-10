@@ -25,7 +25,7 @@ function nodeToJson(node: Node, jsonNode: any): void {
 
 }
 
-export const json = (html: string): string => {
+export const to_json = (html: string): string => {
 	const tempDiv = document.createElement('div');
 	tempDiv.innerHTML = html;
         let ret: any = [];
