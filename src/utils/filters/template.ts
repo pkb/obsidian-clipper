@@ -1,4 +1,5 @@
 import { debugLog } from '../debug';
+import { applyFilters } from '../filters';
 
 export const template = (input: string | any[], param?: string): string => {
 	debugLog('Template', 'Template input:', input);
@@ -57,9 +58,12 @@ function replaceTemplateVariables(obj: any, template: string): string {
 		}
 	}
 
-	let result = template.replace(/\$\{([\w.]+)\}/g, (match, path) => {
+	let result = template.replace(/\$\{([\w.]+)(?:\|(.*?))?\}/g, (match, path, filterString) => {
 		debugLog('Template', 'Replacing:', match);
-		const value = getNestedProperty(obj, path);
+		let value = getNestedProperty(obj, path);
+		if(filterString) {
+			value = applyFilters(value, filterString);
+		}
 		debugLog('Template', 'Replaced with:', value);
 		return value !== undefined && value !== 'undefined' ? value : '';
 	});

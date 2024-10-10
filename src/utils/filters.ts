@@ -38,10 +38,11 @@ import { uncamel } from './filters/uncamel';
 import { unescape } from './filters/unescape';
 import { upper } from './filters/upper';
 import { text } from './filters/text';
-import { json } from './filters/json';
+import { to_json } from './filters/json';
 import { wrap } from './filters/wrap';
 import { split_items } from './filters/split_items';
 import { dur } from './filters/dur';
+import { indent } from './filters/indent';
 import { wikilink } from './filters/wikilink';
 
 
@@ -84,10 +85,11 @@ export const filters: { [key: string]: FilterFunction } = {
 	unescape,
 	upper,
 	text,
-	json,
+	to_json,
 	wrap,
-        split_items,
-        dur,
+    split_items,
+    dur,
+	indent,
 	wikilink
 };
 
