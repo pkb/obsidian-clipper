@@ -14,7 +14,7 @@
 ```
 
 > [!NOTE]
-> I will dropp this fork when I will figure out how to acheive the same results with the upstream code.
+> I will delete this fork when I will figure out how to acheive the same results with the upstream code.
 
 ## Features
 
