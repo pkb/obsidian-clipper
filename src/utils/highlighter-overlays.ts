@@ -12,13 +12,12 @@ import {
 } from './highlighter';
 import { throttle } from './throttle';
 import { getElementByXPath, isDarkColor } from './dom-utils';
-import browser from './browser-polyfill';
-import { toggleHighlighterMenu } from './highlighter';
 
 let hoverOverlay: HTMLElement | null = null;
 let touchStartX: number = 0;
 let touchStartY: number = 0;
 let isTouchMoved: boolean = false;
+let lastHoverTarget: Element | null = null;
 
 // Check if an element should be ignored for highlighting
 function isIgnoredElement(element: Element): boolean {
@@ -137,7 +136,7 @@ function calculateAverageLineHeight(rects: DOMRectList): number {
 
 // Plan out the overlay rectangles depending on the type of highlight
 export function planHighlightOverlayRects(target: Element, highlight: AnyHighlightData, index: number) {
-	const existingOverlays = Array.from(document.querySelectorAll('.obsidian-highlight-overlay'));
+	const existingOverlays = Array.from(document.querySelectorAll(`.obsidian-highlight-overlay[data-highlight-index="${index}"]`));
 	if (highlight.type === 'complex' || highlight.type === 'element') {
 		const rect = target.getBoundingClientRect();
 		mergeHighlightOverlayRects([rect], highlight.content, existingOverlays, false, index);
@@ -157,10 +156,11 @@ export function planHighlightOverlayRects(target: Element, highlight: AnyHighlig
 				const textRects = Array.from(rects).filter(rect => rect.height <= averageLineHeight * 1.5);
 				const complexRects = Array.from(rects).filter(rect => rect.height > averageLineHeight * 1.5);
 				
-				// Only create overlays for complex rects if there are no text rects
+				// Create overlays for all rects
 				if (textRects.length > 0) {
 					mergeHighlightOverlayRects(textRects, highlight.content, existingOverlays, true, index);
-				} else {
+				}
+				if (complexRects.length > 0) {
 					mergeHighlightOverlayRects(complexRects, highlight.content, existingOverlays, false, index);
 				}
 			} else {
@@ -169,6 +169,7 @@ export function planHighlightOverlayRects(target: Element, highlight: AnyHighlig
 				mergeHighlightOverlayRects([rect], highlight.content, existingOverlays, false, index);
 			}
 		} catch (error) {
+			console.error('Error creating text highlight:', error);
 			const rect = target.getBoundingClientRect();
 			mergeHighlightOverlayRects([rect], highlight.content, existingOverlays, false, index);
 		}
@@ -220,10 +221,11 @@ function createHighlightOverlayElement(rect: DOMRect, content: string, isText: b
 	overlay.dataset.highlightIndex = index.toString();
 	
 	overlay.style.position = 'absolute';
-	overlay.style.left = `${rect.left + window.scrollX}px`;
-	overlay.style.top = `${rect.top + window.scrollY}px`;
-	overlay.style.width = `${rect.width}px`;
-	overlay.style.height = `${rect.height}px`;
+
+	overlay.style.left = `${rect.left + window.scrollX - 2}px`;
+	overlay.style.top = `${rect.top + window.scrollY - 2}px`;
+	overlay.style.width = `${rect.width + 4}px`;
+	overlay.style.height = `${rect.height + 4}px`;
 	
 	overlay.setAttribute('data-content', content);
 	
@@ -261,7 +263,10 @@ function updateHighlightOverlayPositions() {
 	highlights.forEach((highlight, index) => {
 		const target = getElementByXPath(highlight.xpath);
 		if (target) {
-			removeExistingHighlightOverlays(index);
+			const existingOverlays = document.querySelectorAll(`.obsidian-highlight-overlay[data-highlight-index="${index}"]`);
+			if (existingOverlays.length > 0) {
+				removeExistingHighlightOverlays(index);
+			}
 			planHighlightOverlayRects(target, highlight, index);
 		}
 	});
@@ -284,9 +289,13 @@ window.addEventListener('scroll', throttledUpdateHighlights);
 const observer = new MutationObserver((mutations) => {
 	if (!isApplyingHighlights) {
 		const shouldUpdate = mutations.some(mutation => 
-			mutation.type === 'childList' || 
+			(mutation.type === 'childList' && 
+			 (mutation.target instanceof Element) && 
+			 !mutation.target.id.startsWith('obsidian-highlight')) || 
 			(mutation.type === 'attributes' && 
-			 (mutation.attributeName === 'style' || mutation.attributeName === 'class'))
+			 (mutation.attributeName === 'style' || mutation.attributeName === 'class') &&
+			 (mutation.target instanceof Element) &&
+			 !mutation.target.id.startsWith('obsidian-highlight'))
 		);
 		if (shouldUpdate) {
 			throttledUpdateHighlights();
@@ -304,6 +313,10 @@ observer.observe(document.body, {
 
 // Create or update the hover overlay used to indicate which element will be highlighted
 function createOrUpdateHoverOverlay(target: Element) {
+	// Only update if the target has changed
+	if (target === lastHoverTarget) return;
+	lastHoverTarget = target;
+
 	if (!hoverOverlay) {
 		hoverOverlay = document.createElement('div');
 		hoverOverlay.id = 'obsidian-highlight-hover-overlay';
@@ -311,20 +324,47 @@ function createOrUpdateHoverOverlay(target: Element) {
 	}
 	
 	const rect = target.getBoundingClientRect();
-	
+
 	hoverOverlay.style.position = 'absolute';
 	hoverOverlay.style.left = `${rect.left + window.scrollX - 2}px`;
 	hoverOverlay.style.top = `${rect.top + window.scrollY - 2}px`;
 	hoverOverlay.style.width = `${rect.width + 4}px`;
 	hoverOverlay.style.height = `${rect.height + 4}px`;
 	hoverOverlay.style.display = 'block';
+
+	// Remove 'is-hovering' class from all highlight overlays
+	document.querySelectorAll('.obsidian-highlight-overlay.is-hovering').forEach(el => {
+		el.classList.remove('is-hovering');
+	});
+
+	// Remove 'on-highlight' class from hover overlay
+	hoverOverlay.classList.remove('on-highlight');
+
+	// Check if the target is a highlight overlay
+	if (target.classList.contains('obsidian-highlight-overlay')) {
+		const index = target.getAttribute('data-highlight-index');
+		if (index) {
+			// Add 'is-hovering' class to all highlight overlays with the same index
+			document.querySelectorAll(`.obsidian-highlight-overlay[data-highlight-index="${index}"]`).forEach(el => {
+				el.classList.add('is-hovering');
+			});
+			// Add 'on-highlight' class to hover overlay
+			hoverOverlay.classList.add('on-highlight');
+		}
+	}
 }
 
-// Removes the hover overlay
+// Modify the removeHoverOverlay function to also remove the 'is-hovering' class
 export function removeHoverOverlay() {
 	if (hoverOverlay) {
 		hoverOverlay.style.display = 'none';
 	}
+	lastHoverTarget = null;
+
+	// Remove 'is-hovering' class from all highlight overlays
+	document.querySelectorAll('.obsidian-highlight-overlay.is-hovering').forEach(el => {
+		el.classList.remove('is-hovering');
+	});
 }
 
 // Update the type of handleHighlightClick
@@ -365,5 +405,8 @@ async function handleHighlightClick(event: Event) {
 
 // Remove all existing highlight overlays from the page
 export function removeExistingHighlights() {
-	document.querySelectorAll('.obsidian-highlight-overlay').forEach(el => el.remove());
+	const existingHighlights = document.querySelectorAll('.obsidian-highlight-overlay');
+	if (existingHighlights.length > 0) {
+		existingHighlights.forEach(el => el.remove());
+	}
 }

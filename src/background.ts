@@ -227,50 +227,37 @@ async function isSidePanelOpen(windowId: number): Promise<boolean> {
 async function setupTabListeners() {
 	const browserType = await detectBrowser();
 	if (['chrome', 'brave', 'edge'].includes(browserType)) {
-
-		browser.tabs.onActivated.addListener(async (activeInfo) => {
-			if (await isSidePanelOpen(activeInfo.windowId)) {
-				updateCurrentActiveTab(activeInfo.windowId);
-				await setHighlighterMode(activeInfo.tabId, false);
-				await paintHighlights(activeInfo.tabId);
-			}
-		});
-
-		browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-			if (changeInfo.status === 'complete' && tab.active && tab.windowId && await isSidePanelOpen(tab.windowId)) {
-				updateCurrentActiveTab(tab.windowId);
-				await setHighlighterMode(tabId, false);
-				await paintHighlights(tabId);
-			}
-		});
-
-		browser.webNavigation.onCommitted.addListener(async (details) => {
-			if (details.frameId === 0) { // Only for main frame
-				await setHighlighterMode(details.tabId, false);
-				await paintHighlights(details.tabId);
+		browser.tabs.onActivated.addListener(handleTabChange);
+		browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+			if (changeInfo.status === 'complete') {
+				handleTabChange({ tabId, windowId: tab.windowId });
 			}
 		});
 	}
 }
 
+const debouncedPaintHighlights = debounce(async (tabId: number) => {
+	await setHighlighterMode(tabId, false);
+	await paintHighlights(tabId);
+}, 250);
+
+async function handleTabChange(activeInfo: { tabId: number; windowId?: number }) {
+	if (activeInfo.windowId && await isSidePanelOpen(activeInfo.windowId)) {
+		updateCurrentActiveTab(activeInfo.windowId);
+		await debouncedPaintHighlights(activeInfo.tabId);
+	}
+}
 
 async function paintHighlights(tabId: number) {
 	try {
-		// First, check if the tab exists
 		const tab = await browser.tabs.get(tabId);
-		if (!tab || !tab.url) {
+		if (!tab || !tab.url || !isValidUrl(tab.url) || isBlankPage(tab.url)) {
 			return;
 		}
 
-		// Check if the URL is valid and not a blank page
-		if (!isValidUrl(tab.url) || isBlankPage(tab.url)) {
-			return;
-		}
-
-		// Then, ensure the content script is loaded
 		await ensureContentScriptLoaded(tabId);
+		await browser.tabs.sendMessage(tabId, { action: "paintHighlights" });
 
-		await browser.tabs.sendMessage(tabId, { action: "paintHighlights" });	
 	} catch (error) {
 		console.error('Error painting highlights:', error);
 	}
@@ -299,17 +286,13 @@ async function setHighlighterMode(tabId: number, activate: boolean) {
 		debouncedUpdateContextMenu(tabId);
 		await sendMessageToPopup(tabId, { action: "updatePopupHighlighterUI", isActive: activate });
 
-		// Store the highlighter mode state
-		await browser.storage.local.set({ isHighlighterMode: activate });
 	} catch (error) {
 		console.error('Error setting highlighter mode:', error);
-		// If there's still an error, the tab might have been closed or navigated away
-		// In this case, we should update our state accordingly
+		// If there's an error, assume highlighter mode should be off
 		isHighlighterMode = false;
 		await browser.storage.local.set({ isHighlighterMode: false });
 		debouncedUpdateContextMenu(tabId);
 		await sendMessageToPopup(tabId, { action: "updatePopupHighlighterUI", isActive: false });
-		await browser.storage.local.set({ isHighlighterMode: false });
 	}
 }
 

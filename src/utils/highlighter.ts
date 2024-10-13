@@ -566,6 +566,10 @@ export function saveHighlights() {
 
 // Apply all highlights to the page
 export function applyHighlights() {
+	if (highlights.length === 0) {
+		return; // Don't do anything if there are no highlights
+	}
+
 	if (isApplyingHighlights) return;
 	
 	const currentHighlightsState = JSON.stringify(highlights);
@@ -585,7 +589,6 @@ export function applyHighlights() {
 	lastAppliedHighlights = currentHighlightsState;
 	isApplyingHighlights = false;
 	notifyHighlightsUpdated();
-	saveHighlights(); // Add this line to ensure storage is updated
 }
 
 // Notify that highlights have been updated
@@ -601,12 +604,15 @@ export function getHighlights(): string[] {
 // Load highlights from browser storage
 export function loadHighlights() {
 	const url = window.location.href;
-	browser.storage.local.get(url).then((result) => {
+	return browser.storage.local.get(url).then((result) => {
 		const storedData = result[url] as StoredData | undefined;
-		if (storedData && Array.isArray(storedData.highlights)) {
+		if (storedData && Array.isArray(storedData.highlights) && storedData.highlights.length > 0) {
 			highlights = storedData.highlights;
 			applyHighlights();
+		} else {
+			highlights = [];
 		}
+		lastAppliedHighlights = JSON.stringify(highlights);
 	});
 }
 

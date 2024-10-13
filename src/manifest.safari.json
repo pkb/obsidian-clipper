@@ -2,14 +2,13 @@
 	"manifest_version": 3,
 	"name": "Obsidian Web Clipper",
 	"homepage_url": "https://obsidian.md/",
-	"version": "0.9.1",
+	"version": "0.9.2",
 	"description": "Save content from the web to Obsidian, in a private and durable format you can always access offline.",
 	"permissions": [
 		"activeTab",
 		"contextMenus",
 		"storage",
-		"scripting",
-		"webNavigation"
+		"scripting"
 	],
 	"action": {
 		"default_popup": "popup.html",
