@@ -58,7 +58,7 @@ function replaceTemplateVariables(obj: any, template: string): string {
 		}
 	}
 
-	let result = template.replace(/\$\{([\w.]+)(?:\|(.*?))?\}/g, (match, path, filterString) => {
+	let result = template.replace(/\$\{([\w.\[\]]+)(?:\|(.*?))?\}/g, (match, path, filterString) => {
 		debugLog('Template', 'Replacing:', match);
 		let value = getNestedProperty(obj, path);
 		if(filterString) {
