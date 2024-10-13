@@ -43,6 +43,7 @@ import { wrap } from './filters/wrap';
 import { split_items } from './filters/split_items';
 import { dur } from './filters/dur';
 import { indent } from './filters/indent';
+import { to_html } from './filters/to_html';
 import { wikilink } from './filters/wikilink';
 
 
@@ -90,6 +91,7 @@ export const filters: { [key: string]: FilterFunction } = {
     split_items,
     dur,
 	indent,
+	to_html,
 	wikilink
 };
 

@@ -100,10 +100,13 @@ function parseObjectString(str: string): any {
 }
 
 function getNestedProperty(obj: any, path: string): any {
-	debugLog('Template', 'Getting nested property:', { obj, path });
-	const result = path.split('.').reduce((current, key) => {
-		return current && typeof current === 'object' ? current[key] : undefined;
+	debugLog('Map', 'Getting nested property:', { obj: JSON.stringify(obj), path });
+	const result = path.split(/[\.\[\]]/).filter(Boolean).reduce((current, key) => {
+		if (current && Array.isArray(current) && /^\d+$/.test(key)) {
+			return current[parseInt(key, 10)];
+		}
+		return current && current[key] !== undefined ? current[key] : undefined;
 	}, obj);
-	debugLog('Template', 'Nested property result:', result);
+	debugLog('Map', 'Nested property result:', result);
 	return result;
 }
