@@ -9,6 +9,7 @@ import { createDefaultTemplate, getTemplates, saveTemplateSettings } from '../ma
 import { updateTemplateList, showTemplateEditor } from '../managers/template-ui';
 import { exportAllSettings, importAllSettings } from '../utils/import-export';
 import { Template } from '../types/types';
+import { exportHighlights } from './highlights-manager';
 
 export function updateVaultList(): void {
 	const vaultList = document.getElementById('vault-list') as HTMLUListElement;
@@ -103,6 +104,8 @@ export function initializeGeneralSettings(): void {
 		initializeAutoSave();
 		initializeResetDefaultTemplateButton();
 		initializeExportImportAllSettingsButtons();
+		initializeHighlighterSettings();
+		initializeExportHighlightsButton();
 	});
 }
 
@@ -118,13 +121,21 @@ function saveSettingsFromForm(): void {
 	const betaFeaturesToggle = document.getElementById('beta-features-toggle') as HTMLInputElement;
 	const legacyModeToggle = document.getElementById('legacy-mode-toggle') as HTMLInputElement;
 	const silentOpenToggle = document.getElementById('silent-open-toggle') as HTMLInputElement;
+	const highlighterToggle = document.getElementById('highlighter-toggle') as HTMLInputElement;
+	const alwaysShowHighlightsToggle = document.getElementById('highlighter-visibility') as HTMLInputElement;
+	const highlightBehaviorSelect = document.getElementById('highlighter-behavior') as HTMLSelectElement;
 
 	const settings = {
 		showMoreActionsButton: showMoreActionsToggle?.checked,
 		betaFeatures: betaFeaturesToggle?.checked,
 		legacyMode: legacyModeToggle?.checked,
-		silentOpen: silentOpenToggle?.checked
-	}
+		silentOpen: silentOpenToggle?.checked,
+		highlighterEnabled: highlighterToggle?.checked,
+		alwaysShowHighlights: alwaysShowHighlightsToggle?.checked,
+		highlightBehavior: highlightBehaviorSelect?.value
+	};
+
+	saveSettings(settings);
 }
 
 function debounce(func: Function, delay: number): (...args: any[]) => void {
@@ -256,5 +267,39 @@ function initializeExportImportAllSettingsButtons(): void {
 	const importAllSettingsBtn = document.getElementById('import-all-settings-btn');
 	if (importAllSettingsBtn) {
 		importAllSettingsBtn.addEventListener('click', importAllSettings);
+	}
+}
+
+function initializeExportHighlightsButton(): void {
+	const exportHighlightsBtn = document.getElementById('export-highlights');
+	if (exportHighlightsBtn) {
+		exportHighlightsBtn.addEventListener('click', exportHighlights);
+	}
+}
+
+function initializeHighlighterSettings(): void {
+	const highlighterToggle = document.getElementById('highlighter-toggle') as HTMLInputElement;
+	const alwaysShowHighlightsToggle = document.getElementById('highlighter-visibility') as HTMLInputElement;
+	const highlightBehaviorSelect = document.getElementById('highlighter-behavior') as HTMLSelectElement;
+
+	if (highlighterToggle) {
+		highlighterToggle.checked = generalSettings.highlighterEnabled;
+		highlighterToggle.addEventListener('change', () => {
+			saveSettings({ highlighterEnabled: highlighterToggle.checked });
+		});
+	}
+
+	if (alwaysShowHighlightsToggle) {
+		alwaysShowHighlightsToggle.checked = generalSettings.alwaysShowHighlights;
+		alwaysShowHighlightsToggle.addEventListener('change', () => {
+			saveSettings({ alwaysShowHighlights: alwaysShowHighlightsToggle.checked });
+		});
+	}
+
+	if (highlightBehaviorSelect) {
+		highlightBehaviorSelect.value = generalSettings.highlightBehavior;
+		highlightBehaviorSelect.addEventListener('change', () => {
+			saveSettings({ highlightBehavior: highlightBehaviorSelect.value });
+		});
 	}
 }

@@ -394,6 +394,7 @@ export function createMarkdownContent(content: string, url: string) {
 			if (node instanceof HTMLElement) {
 				return (
 					(node.nodeName === 'OL' && node.classList.contains('references')) ||
+					(node.nodeName === 'OL' && node.classList.contains('footnotes-list')) ||
 					(node.nodeName === 'UL' && node.classList.contains('ltx_biblist')) ||
 					(node.nodeName === 'OL' && node.parentElement?.classList?.contains('footnotes') === true)
 				);
@@ -410,8 +411,15 @@ export function createMarkdownContent(content: string, url: string) {
 						id = li.id.replace('fn:', '');
 					} else {
 						const match = li.id.split('/').pop()?.match(/cite_note-(.+)/);
-						id = match ? match[1] : li.id.replace('fn:', '');
+						id = match ? match[1] : li.id;
 					}
+					
+					// Remove the leading sup element if its content matches the footnote id
+					const supElement = li.querySelector('sup');
+					if (supElement && supElement.textContent?.trim() === id) {
+						supElement.remove();
+					}
+					
 					const referenceContent = turndownService.turndown(li.innerHTML);
 					// Remove the backlink from the footnote content
 					const cleanedContent = referenceContent.replace(/\s*↩︎$/, '').trim();
@@ -427,6 +435,9 @@ export function createMarkdownContent(content: string, url: string) {
 	turndownService.addRule('removals', {
 		filter: function (node) {
 			if (!(node instanceof HTMLElement)) return false;
+			// Back to top links
+			if (node.id.startsWith('back-to-top')) return true;
+			if (node.classList.contains('back-to-top')) return true;
 			// Wikipedia edit buttons
 			if (node.classList.contains('mw-editsection')) return true;
 			// Wikipedia cite backlinks

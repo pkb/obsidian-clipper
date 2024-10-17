@@ -2,12 +2,11 @@ import { ExtractedContent } from '../types/types';
 import { createMarkdownContent } from './markdown-converter';
 import { sanitizeFileName } from './string-utils';
 import { Readability } from '@mozilla/readability';
-import { applyFilters } from './filters';
 import browser from './browser-polyfill';
 import { debugLog } from './debug';
 import dayjs from 'dayjs';
-import { generalSettings } from '../utils/storage-utils';
 import { AnyHighlightData } from './highlighter';
+import { generalSettings } from './storage-utils';
 
 export function extractReadabilityContent(doc: Document): ReturnType<Readability['parse']> | null {
 	try {
@@ -17,144 +16,6 @@ export function extractReadabilityContent(doc: Document): ReturnType<Readability
 		console.error('Error in extractReadabilityContent:', error);
 		return null;
 	}
-}
-
-async function processSelector(tabId: number, match: string, currentUrl: string): Promise<string> {
-	const selectorRegex = /{{(selector|selectorHtml):(.*?)(?:\?(.*?))?(?:\|(.*?))?}}/;
-	const matches = match.match(selectorRegex);
-	if (!matches) {
-		console.error('Invalid selector format:', match);
-		return match;
-	}
-
-	const [, selectorType, rawSelector, attribute, filtersString] = matches;
-	const extractHtml = selectorType === 'selectorHtml';
-
-	// Unescape any escaped quotes in the selector
-	const selector = rawSelector.replace(/\\"/g, '"');
-
-	try {
-		const response = await browser.tabs.sendMessage(tabId, { 
-			action: "extractContent", 
-			selector: selector,
-			attribute: attribute,
-			extractHtml: extractHtml
-		}) as { content: string };
-
-		let content = response ? response.content : '';
-	
-		// Convert content to string if it's an array
-		const contentString = Array.isArray(content) ? JSON.stringify(content) : content;
-	
-		debugLog('ContentExtractor', 'Applying filters:', { selector, filterString: filtersString });
-		const filteredContent = applyFilters(contentString, filtersString, currentUrl);
-	
-		return filteredContent;
-	} catch (error) {
-		console.error('Error extracting content by selector:', error, { selector, attribute, extractHtml });
-		return '';
-	}
-}
-
-async function processSchema(match: string, variables: { [key: string]: string }, currentUrl: string): Promise<string> {
-	const [, fullSchemaKey] = match.match(/{{schema:(.*?)}}/) || [];
-	const [schemaKey, ...filterParts] = fullSchemaKey.split('|');
-	const filtersString = filterParts.join('|');
-
-	let schemaValue = '';
-
-	// Check if we're dealing with a nested array access
-	const nestedArrayMatch = schemaKey.match(/(.*?)\[(\*|\d+)\](.*)/);
-	if (nestedArrayMatch) {
-		const [, arrayKey, indexOrStar, propertyKey] = nestedArrayMatch;
-
-		// Handle shorthand notation for nested arrays
-		let fullArrayKey = arrayKey;
-		if (!arrayKey.includes('@')) {
-			const matchingKey = Object.keys(variables).find(key => key.includes('@') && key.endsWith(`:${arrayKey}}}`));
-			if (matchingKey) {
-				fullArrayKey = matchingKey.replace('{{schema:', '').replace('}}', '');
-			}
-		}
-
-		const arrayValue = JSON.parse(variables[`{{schema:${fullArrayKey}}}`] || '[]');
-		if (Array.isArray(arrayValue)) {
-			if (indexOrStar === '*') {
-				schemaValue = JSON.stringify(arrayValue.map(item => getNestedProperty(item, propertyKey.slice(1))).filter(Boolean));
-			} else {
-				const index = parseInt(indexOrStar, 10);
-				schemaValue = arrayValue[index] ? getNestedProperty(arrayValue[index], propertyKey.slice(1)) : '';
-			}
-		}
-	} else {
-		// Shorthand handling for non-array schemas
-		if (!schemaKey.includes('@')) {
-			const matchingKey = Object.keys(variables).find(key => key.includes('@') && key.endsWith(`:${schemaKey}}}`));
-			if (matchingKey) {
-				schemaValue = variables[matchingKey];
-			}
-		}
-		// If no matching shorthand found or it's a full key, use the original logic
-		if (!schemaValue) {
-			schemaValue = variables[`{{schema:${schemaKey}}}`] || '';
-		}
-	}
-
-	return applyFilters(schemaValue, filtersString, currentUrl);
-}
-
-// This function doesn't really do anything, it just returns the whole prompt variable
-// so that it's still visible in the input fields in the popup
-async function processPrompt(match: string, variables: { [key: string]: string }, currentUrl: string): Promise<string> {
-	if (generalSettings.interpreterEnabled) {
-		const promptRegex = /{{prompt:\\?"(.*?)\\?"(\|.*?)?}}/;
-		const matches = match.match(promptRegex);
-		if (!matches) {
-			console.error('Invalid prompt format:', match);
-			return match;
-		}
-	
-		const [, promptText, filters = ''] = matches;
-	
-		return match;
-	} else {
-		return '';
-	}
-}
-
-function getNestedProperty(obj: any, path: string): any {
-	return path.split('.').reduce((prev, curr) => prev && prev[curr], obj);
-}
-
-export async function replaceVariables(tabId: number, text: string, variables: { [key: string]: string }, currentUrl: string): Promise<string> {
-	const regex = /{{(?:schema:)?(?:selector:)?(?:selectorHtml:)?(?:prompt:)?\s*([\s\S]*?)\s*}}/g;
-	const matches = text.match(regex);
-
-	if (matches) {
-		for (const match of matches) {
-			let replacement: string;
-			const trimmedMatch = match.trim().slice(2, -2).trim();
-			const normalizedMatch = trimmedMatch.replace(/\s+/g, ' ');
-			
-			if (normalizedMatch.startsWith('selector:') || normalizedMatch.startsWith('selectorHtml:')) {
-				const [selectorType, ...selectorParts] = normalizedMatch.split(':');
-				const selector = selectorParts.join(':').trim();
-				const reconstructedMatch = `{{${selectorType}:${selector}}}`;
-				replacement = await processSelector(tabId, reconstructedMatch, currentUrl);
-			} else if (normalizedMatch.startsWith('schema:')) {
-				replacement = await processSchema(match, variables, currentUrl);
-			} else if (normalizedMatch.startsWith('prompt:')) {
-				replacement = await processPrompt(match, variables, currentUrl);
-			} else {
-				const [variableName, ...filterParts] = normalizedMatch.split('|').map(part => part.trim());
-				let value = variables[`{{${variableName.trim()}}}`] || '';				
-				const filtersString = filterParts.join('|');
-				replacement = applyFilters(value, filtersString, currentUrl);
-			}
-			text = text.replace(match, replacement);
-		}
-	}
-	return text;
 }
 
 interface ContentResponse {
@@ -179,7 +40,7 @@ export async function extractPageContent(tabId: number): Promise<ContentResponse
 							type: 'text',
 							id: Date.now().toString(),
 							xpath: '',
-							content: highlight,
+							content: `<div>` + highlight + `</div>`,
 							startOffset: 0,
 							endOffset: highlight.length
 						};
@@ -216,11 +77,7 @@ export async function initializePageContent(content: string, selectedHtml: strin
 	try {
 		const parser = new DOMParser();
 		const doc = parser.parseFromString(content, 'text/html');
-
-		const readabilityArticle = extractReadabilityContent(doc);
-		if (!readabilityArticle) {
-			console.warn('Failed to parse content with Readability, falling back to full content');
-		}
+		currentUrl = currentUrl.replace(/#:~:text=[^&]+(&|$)/, '');
 
 		// Define preset variables with fallbacks
 		const title =
@@ -286,8 +143,13 @@ export async function initializePageContent(content: string, selectedHtml: strin
 			|| getMetaContent(doc, "name", "application-name")
 			|| '';
 
-		if (highlights && highlights.length > 0) {
-			const highlightsContent = highlights.map(highlight => highlight.content).join('\n\n\n');
+		const readabilityArticle = extractReadabilityContent(doc);
+		if (!readabilityArticle) {
+			console.warn('Failed to parse content with Readability, falling back to full content');
+		}
+
+		if (generalSettings.highlighterEnabled && generalSettings.highlightBehavior !== 'no-highlights' && highlights && highlights.length > 0) {
+			const highlightsContent = highlights.map(highlight => highlight.content).join('');
 			content = highlightsContent;
 		} else if (selectedHtml) {
 			content = selectedHtml;
@@ -299,8 +161,23 @@ export async function initializePageContent(content: string, selectedHtml: strin
 
 		const markdownBody = createMarkdownContent(content, currentUrl);
 
-		// Convert each highlight to markdown individually and keep as an array
-		const markdownHighlights = highlights.map(highlight => createMarkdownContent(highlight.content, currentUrl));
+		// Convert each highlight to markdown individually and create an object with text, timestamp, and notes (if not empty)
+		const highlightsData = highlights.map(highlight => {
+			const highlightData: {
+				text: string;
+				timestamp: string;
+				notes?: string[];
+			} = {
+				text: createMarkdownContent(highlight.content, currentUrl),
+				timestamp: dayjs(parseInt(highlight.id)).toISOString(), // Convert to ISO format
+			};
+			
+			if (highlight.notes && highlight.notes.length > 0) {
+				highlightData.notes = highlight.notes;
+			}
+			
+			return highlightData;
+		});
 
 		const currentVariables: { [key: string]: string } = {
 			'{{author}}': authorName.trim(),
@@ -317,7 +194,7 @@ export async function initializePageContent(content: string, selectedHtml: strin
 			'{{site}}': site.trim(),
 			'{{title}}': title.trim(),
 			'{{url}}': currentUrl.trim(),
-			'{{highlights}}': highlights.length > 0 ? JSON.stringify(markdownHighlights) : '',
+			'{{highlights}}': JSON.stringify(highlightsData),
 		};
 
 		// Add extracted content to variables

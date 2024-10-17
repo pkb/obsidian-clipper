@@ -16,6 +16,7 @@ import { kebab } from './filters/kebab';
 import { last } from './filters/last';
 import { list } from './filters/list';
 import { link } from './filters/link';
+import { fragment_link } from './filters/fragment_link';
 import { lower } from './filters/lower';
 import { map } from './filters/map';
 import { markdown } from './filters/markdown';
@@ -56,6 +57,7 @@ export const filters: { [key: string]: FilterFunction } = {
 	date,
 	first,
 	footnote,
+	fragment_link,
 	html_to_json,
 	image,
 	join,
@@ -250,6 +252,11 @@ export function applyFilters(value: string | any[], filterString: string, curren
 				if (name === 'markdown' && params.length === 0 && currentUrl) {
 					params.push(currentUrl);
 				}
+
+				// Special case for fragment filter: use currentUrl if no params provided
+				if (name === 'fragment_link' && currentUrl) {
+					params.push(currentUrl);
+				} 
 				
 				// Apply the filter and get the output
 				const output = filter(stringInput, params.join(':'));
