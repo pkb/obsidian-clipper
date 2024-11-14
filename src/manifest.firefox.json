@@ -1,15 +1,22 @@
 {
 	"manifest_version": 3,
+	"default_locale": "en",
 	"name": "Obsidian Web Clipper",
 	"homepage_url": "https://obsidian.md/",
-	"version": "0.9.5",
+	"version": "0.9.6",
 	"description": "Save content from the web in a private and durable format that you can access offline. The official browser extension for Obsidian.",
 	"permissions": [
 		"activeTab",
 		"clipboardWrite",
 		"contextMenus",
+		"downloads",
 		"storage",
 		"scripting"
+	],
+	"host_permissions": [
+		"<all_urls>",
+		"http://*/*",
+		"https://*/*"
 	],
 	"action": {
 		"default_popup": "popup.html",
@@ -48,20 +55,16 @@
 				"default": "Alt+Shift+O",
 				"mac": "Alt+Shift+O"
 			},
-			"description": "Open Obsidian Clipper"
+			"description": "__MSG_commandOpenClipper__"
 		},
 		"toggle_highlighter": {
 			"suggested_key": {
 				"default": "Alt+H",
 				"mac": "Alt+H"
 			},
-			"description": "Toggle highlighter mode"
+			"description": "__MSG_commandToggleHighlighter__"
 		}
 	},
-	"host_permissions": [
-		"http://*/*",
-		"https://*/*"
-	],
 	"browser_specific_settings": {
 		"gecko": {
 			"id": "clipper@obsidian.md",
