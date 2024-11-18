@@ -295,7 +295,7 @@
 				"content": "</a>"
 			},
 			"link_start": {
-				"content": "<a href=\"https://help.obsidian.md/web-clipper/variabless\" target=\"_blank\">"
+				"content": "<a href=\"https://help.obsidian.md/web-clipper/variables\" target=\"_blank\">"
 			}
 		}
 	},
@@ -396,7 +396,7 @@
 		"message": "キーボードショートカットでクリッパー機能に素早くアクセスできます。"
 	},
 	"shortcutInstructionsSafari": {
-		"message": "Safariの拡張機能ではキーボードショートカットは利用できません。"
+		"message": "Safariではキーボードショートカットをカスタマイズできません。"
 	},
 	"shortcutNotSet": {
 		"message": "未設定"
@@ -467,5 +467,14 @@
 				"content": "<strong>"
 			}
 		}
+	},
+	"help": {
+		"message": "ヘルプ"
+	},
+	"helpDescription": {
+		"message": "Web Clipperの使い方とトラブルシューティングのヘルプを参照してください。"
+	},
+	"open": {
+		"message": "開く"
 	}
 } 

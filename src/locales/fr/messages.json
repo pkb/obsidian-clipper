@@ -295,7 +295,7 @@
 				"content": "</a>"
 			},
 			"link_start": {
-				"content": "<a href=\"https://help.obsidian.md/web-clipper/variabless\" target=\"_blank\">"
+				"content": "<a href=\"https://help.obsidian.md/web-clipper/variables\" target=\"_blank\">"
 			}
 		}
 	},
@@ -396,7 +396,7 @@
 		"message": "Les raccourcis clavier vous donnent un accès rapide aux fonctionnalités du clipper."
 	},
 	"shortcutInstructionsSafari": {
-		"message": "Les raccourcis clavier ne sont pas disponibles pour les extensions Safari."
+		"message": "Les raccourcis clavier ne sont pas personnalisables sur Safari."
 	},
 	"shortcutNotSet": {
 		"message": "Non défini"
@@ -467,5 +467,14 @@
 				"content": "<strong>"
 			}
 		}
+	},
+	"help": {
+		"message": "Aide"
+	},
+	"helpDescription": {
+		"message": "Apprenez à utiliser Web Clipper et obtenez de l'aide pour le dépannage."
+	},
+	"open": {
+		"message": "Ouvrir"
 	}
 }

@@ -3,14 +3,13 @@
 	"default_locale": "en",
 	"name": "Obsidian Web Clipper",
 	"homepage_url": "https://obsidian.md/",
-	"version": "0.9.6",
+	"version": "0.9.7",
 	"description": "Save content from the web in a private and durable format that you can access offline. The official browser extension for Obsidian.",
 	"permissions": [
 		"activeTab",
 		"clipboardWrite",
 		"commands",
 		"contextMenus",
-		"downloads",
 		"sidePanel",
 		"storage",
 		"scripting"
@@ -66,8 +65,8 @@
 		},
 		"toggle_highlighter": {
 			"suggested_key": {
-				"default": "Alt+H",
-				"mac": "Alt+H"
+				"default": "Alt+Shift+H",
+				"mac": "Alt+Shift+H"
 			},
 			"description": "__MSG_commandToggleHighlighter__"
 		}
