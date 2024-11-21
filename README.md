@@ -8,9 +8,10 @@ Obsidian Web Clipper helps you highlight and capture the web in your favorite br
 
 Install the extension by downloading it from the official directory for your browser:
 
-- **[Chrome Web Store](https://chromewebstore.google.com/detail/obsidian-web-clipper/cnjifjpddelmedmihgijeibhnjfabmlf)** for Chrome, Brave, Edge, Arc, Orion, and other Chromium-based browsers.
+- **[Chrome Web Store](https://chromewebstore.google.com/detail/obsidian-web-clipper/cnjifjpddelmedmihgijeibhnjfabmlf)** for Chrome, Brave, Arc, Orion, and other Chromium-based browsers.
 - **[Firefox Add-Ons](https://addons.mozilla.org/en-US/firefox/addon/web-clipper-obsidian/)** for Firefox and Firefox Mobile.
 - **[Safari Extensions](https://apps.apple.com/us/app/obsidian-web-clipper/id6720708363)** for macOS, iOS, and iPadOS.
+- **[Edge Add-Ons](https://microsoftedge.microsoft.com/addons/detail/obsidian-web-clipper/eigdjhmgnaaeaonimdklocfekkaanfme)** for Microsoft Edge.
 
 ## Use the extension
 
@@ -31,15 +32,14 @@ See the [help wanted](https://github.com/obsidianmd/obsidian-clipper/issues?q=is
 In no particular order:
 
 - [ ] A separate icon for Web Clipper
-- [ ] Add to Microsoft Edge directory, awaiting approval
 - [ ] Translate UI into more languages — help is welcomed
-- [ ] RTL support
 - [ ] Annotate highlights
-- [ ] Save Markdown with inline highlights
 - [ ] Save images locally — requires changes to Obsidian app
 - [ ] Template directory
 - [ ] Template validation
 - [ ] Template logic (if/for)
+- [x] Save Markdown with inline highlights
+- [x] RTL support
 
 ## Developers
 
