@@ -44,6 +44,7 @@ export const remove_html = (html: string, params: string = ''): string => {
 
 	const result = tempDiv.innerHTML;
 	debugLog('RemoveHTML', 'Output:', result);
+	tempDiv.remove();
 
 	return result;
 };

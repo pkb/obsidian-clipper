@@ -439,8 +439,9 @@ function processHighlights(content: string, highlights: AnyHighlightData[], read
 		for (const highlight of textHighlights) {
 			processHighlight(highlight, tempDiv);
 		}
-
-		return tempDiv.innerHTML;
+                const ret = tempDiv.innerHTML;
+                tempDiv.remove()
+		return ret;
 	}
 
 	// Default fallback

@@ -142,8 +142,10 @@ export function processUrls(htmlContent: string, baseUrl: URL): string {
 	tempDiv.querySelectorAll('img').forEach(img => makeUrlAbsolute(img, 'srcset', baseUrl));
 	tempDiv.querySelectorAll('img').forEach(img => makeUrlAbsolute(img, 'src', baseUrl));
 	tempDiv.querySelectorAll('a').forEach(link => makeUrlAbsolute(link, 'href', baseUrl));
-	
-	return tempDiv.innerHTML;
+
+        const  ret = tempDiv.innerHTML;
+        tempDiv.remove()
+	return ret;
 }
 
 export function formatDuration(ms: number): string {

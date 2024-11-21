@@ -321,6 +321,7 @@ function getHighlightRanges(range: Range): TextHighlightData[] {
 		endOffset: getTextOffset(parentElement, range.endContainer, range.endOffset)
 	});
 
+        tempDiv.remove()
 	return highlights;
 }
 

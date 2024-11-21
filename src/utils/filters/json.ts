@@ -26,9 +26,10 @@ function nodeToJson(node: Node, jsonNode: any): void {
 }
 
 export const to_json = (html: string): string => {
-	const tempDiv = document.createElement('div');
-	tempDiv.innerHTML = html;
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
     let ret: any = [];
     nodeChildrenToJson(tempDiv, ret)
-	return JSON.stringify(ret);
+    tempDiv.remove();
+    return JSON.stringify(ret);
 };
