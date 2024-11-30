@@ -2,6 +2,7 @@ import browser from './browser-polyfill';
 
 export interface ModelConfig {
 	id: string;
+	providerId: string;
 	name: string;
 	provider?: string;
 	baseUrl: string;
@@ -13,6 +14,15 @@ export interface PropertyType {
 	name: string;
 	type: string;
 	defaultValue?: string;
+}
+
+export interface HistoryEntry {
+	datetime: string;
+	url: string;
+	action: keyof Settings['stats'];
+	title?: string;
+	vault?: string;
+	path?: string;
 }
 
 export interface Settings {
@@ -32,6 +42,13 @@ export interface Settings {
 	interpreterAutoRun: boolean;
 	defaultPromptContext: string;
 	propertyTypes: PropertyType[];
+	stats: {
+		addToObsidian: number;
+		saveFile: number;
+		copyToClipboard: number;
+		share: number;
+	};
+	history: HistoryEntry[];
 }
 
 export let generalSettings: Settings = {
@@ -47,17 +64,22 @@ export let generalSettings: Settings = {
 	anthropicApiKey: '',
 	interpreterModel: 'gpt-4o-mini',
 	models: [
-		{ id: 'gpt-4o-mini', name: 'GPT-4o Mini', provider: 'OpenAI', baseUrl: 'https://api.openai.com/v1/chat/completions', enabled: true },
-		{ id: 'gpt-4o', name: 'GPT-4o', provider: 'OpenAI', baseUrl: 'https://api.openai.com/v1/chat/completions', enabled: true },
-		{ id: 'gpt-o1-mini', name: 'GPT-o1 Mini', provider: 'OpenAI', baseUrl: 'https://api.openai.com/v1/chat/completions', enabled: true },
-		{ id: 'claude-3-5-sonnet-20240620', name: 'Claude 3.5 Sonnet', provider: 'Anthropic', baseUrl: 'https://api.anthropic.com/v1/messages', enabled: true },
-		{ id: 'claude-3-haiku-20240307', name: 'Claude 3 Haiku', provider: 'Anthropic', baseUrl: 'https://api.anthropic.com/v1/messages', enabled: true },
-		{ id: 'claude-3-opus-20240229', name: 'Claude 3 Opus', provider: 'Anthropic', baseUrl: 'https://api.anthropic.com/v1/messages', enabled: true }
+		{ id: 'gpt-4o-mini', providerId: 'gpt-4o-mini', name: 'GPT-4o Mini', provider: 'OpenAI', baseUrl: 'https://api.openai.com/v1/chat/completions', enabled: true },
+		{ id: 'gpt-4o', providerId: 'gpt-4o', name: 'GPT-4o', provider: 'OpenAI', baseUrl: 'https://api.openai.com/v1/chat/completions', enabled: true },
+		{ id: 'claude-3-5-sonnet-20240620', providerId: 'claude-3-5-sonnet-20240620', name: 'Claude 3.5 Sonnet', provider: 'Anthropic', baseUrl: 'https://api.anthropic.com/v1/messages', enabled: true },
+		{ id: 'claude-3-haiku-20240307', providerId: 'claude-3-haiku-20240307', name: 'Claude 3 Haiku', provider: 'Anthropic', baseUrl: 'https://api.anthropic.com/v1/messages', enabled: true },
 	],
 	interpreterEnabled: false,
 	interpreterAutoRun: false,
-	defaultPromptContext: '{{fullHtml|strip_tags:("script,h1,h2,h3,h4,h5,h6,meta,a,ol,ul,li,p,em,strong,i,b,img,video,audio,math,tablecite,strong,td,th,tr,caption,u")|strip_attr:("alt,src,href,id,content,property,name,datetime,title")}}',
-	propertyTypes: []
+	defaultPromptContext: '',
+	propertyTypes: [],
+	stats: {
+		addToObsidian: 0,
+		saveFile: 0,
+		copyToClipboard: 0,
+		share: 0
+	},
+	history: []
 };
 
 export function setLocalStorage(key: string, value: any): Promise<void> {
@@ -91,11 +113,29 @@ interface StorageData {
 		defaultPromptContext?: string;
 	};
 	property_types?: PropertyType[];
+	stats?: {
+		addToObsidian: number;
+		saveFile: number;
+		copyToClipboard: number;
+		share: number;
+	};
+	history?: HistoryEntry[];
 }
 
 export async function loadSettings(): Promise<Settings> {
-	const data = await browser.storage.sync.get(['general_settings', 'vaults', 'highlighter_settings', 'interpreter_settings', 'property_types']) as StorageData;
+	const data = await browser.storage.sync.get([
+		'general_settings', 
+		'vaults', 
+		'highlighter_settings', 
+		'interpreter_settings', 
+		'property_types',
+		'stats'
+	]) as StorageData;
 
+	const localData = await browser.storage.local.get('history');
+	const history = (localData.history || []) as HistoryEntry[];
+
+	// Load default settings first
 	const defaultSettings: Settings = {
 		vaults: [],
 		showMoreActionsButton: false,
@@ -112,9 +152,17 @@ export async function loadSettings(): Promise<Settings> {
 		interpreterEnabled: false,
 		interpreterAutoRun: false,
 		defaultPromptContext: generalSettings.defaultPromptContext,
-		propertyTypes: []
+		propertyTypes: [],
+		stats: {
+			addToObsidian: 0,
+			saveFile: 0,
+			copyToClipboard: 0,
+			share: 0
+		},
+		history: []
 	};
 
+	// Load user settings
 	const loadedSettings: Settings = {
 		vaults: data.vaults || defaultSettings.vaults,
 		showMoreActionsButton: data.general_settings?.showMoreActionsButton ?? defaultSettings.showMoreActionsButton,
@@ -131,8 +179,34 @@ export async function loadSettings(): Promise<Settings> {
 		interpreterEnabled: data.interpreter_settings?.interpreterEnabled ?? defaultSettings.interpreterEnabled,
 		interpreterAutoRun: data.interpreter_settings?.interpreterAutoRun ?? defaultSettings.interpreterAutoRun,
 		defaultPromptContext: data.interpreter_settings?.defaultPromptContext || defaultSettings.defaultPromptContext,
-		propertyTypes: data.property_types || defaultSettings.propertyTypes
+		propertyTypes: data.property_types || defaultSettings.propertyTypes,
+		stats: data.stats || defaultSettings.stats,
+		history: history
 	};
+
+	// Migrate models to include providerId if missing
+	if (loadedSettings.models) {
+		loadedSettings.models = loadedSettings.models.map(model => {
+			if (!model.providerId) {
+				// For custom models without providerId, use their id
+				return {
+					...model,
+					providerId: model.id
+				};
+			}
+			return model;
+		});
+
+		// Save migrated models back to storage
+		if (loadedSettings.models.some(model => !model.providerId)) {
+			await browser.storage.sync.set({
+				interpreter_settings: {
+					...data.interpreter_settings,
+					models: loadedSettings.models
+				}
+			});
+		}
+	}
 
 	generalSettings = loadedSettings;
 	return generalSettings;
@@ -164,11 +238,63 @@ export async function saveSettings(settings?: Partial<Settings>): Promise<void> 
 			interpreterAutoRun: generalSettings.interpreterAutoRun,
 			defaultPromptContext: generalSettings.defaultPromptContext
 		},
-		property_types: generalSettings.propertyTypes
+		property_types: generalSettings.propertyTypes,
+		stats: generalSettings.stats
 	});
 }
 
 export async function setLegacyMode(enabled: boolean): Promise<void> {
 	await saveSettings({ legacyMode: enabled });
 	console.log(`Legacy mode ${enabled ? 'enabled' : 'disabled'}`);
+}
+
+export async function incrementStat(
+	action: keyof Settings['stats'],
+	vault?: string,
+	path?: string
+): Promise<void> {
+	const settings = await loadSettings();
+	settings.stats[action]++;
+	await saveSettings(settings);
+
+	// Get the current tab's URL and title
+	const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+	if (tabs[0]?.url) {
+		await addHistoryEntry(action, tabs[0].url, tabs[0].title, vault, path);
+	}
+}
+
+export async function addHistoryEntry(
+	action: keyof Settings['stats'], 
+	url: string, 
+	title?: string,
+	vault?: string,
+	path?: string
+): Promise<void> {
+	const entry: HistoryEntry = {
+		datetime: new Date().toISOString(),
+		url,
+		action,
+		title,
+		vault,
+		path
+	};
+
+	// Get existing history from local storage
+	const result = await browser.storage.local.get('history');
+	const history: HistoryEntry[] = (result.history || []) as HistoryEntry[];
+
+	// Add new entry at the beginning
+	history.unshift(entry);
+
+	// Keep only the last 1000 entries
+	const trimmedHistory = history.slice(0, 1000);
+
+	// Save back to local storage
+	await browser.storage.local.set({ history: trimmedHistory });
+}
+
+export async function getClipHistory(): Promise<HistoryEntry[]> {
+	const result = await browser.storage.local.get('history');
+	return (result.history || []) as HistoryEntry[];
 }

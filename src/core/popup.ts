@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import { Template, Property, PromptVariable } from '../types/types';
+import { incrementStat, addHistoryEntry, getClipHistory } from '../utils/storage-utils';
 import { generateFrontmatter, saveToObsidian } from '../utils/obsidian-note-creator';
 import { extractPageContent, initializePageContent } from '../utils/content-extractor';
 import { compileTemplate } from '../utils/template-compiler';
@@ -103,7 +104,7 @@ const debouncedSetPopupDimensions = debounce(setPopupDimensions, 100); // 100ms 
 async function initializeExtension(tabId: number) {
 	try {
 		// Initialize translations
-		translatePage();
+		await translatePage();
 		
 		// Setup language and RTL support
 		await setupLanguageAndDirection();
@@ -156,7 +157,6 @@ async function initializeExtension(tabId: number) {
 			return;
 		}
 		await ensureContentScriptLoaded(tabId);
-		await refreshFields(tabId);
 
 		await loadAndSetupTemplates();
 
@@ -373,7 +373,7 @@ function setupEventListeners(tabId: number) {
 	const shareButtons = document.querySelectorAll('.share-content');
 	if (shareButtons) {
 		shareButtons.forEach(button => {
-			button.addEventListener('click', (e) => {
+			button.addEventListener('click', async (e) => {
 				// Get content synchronously
 				const properties = Array.from(document.querySelectorAll('.metadata-property input')).map(input => {
 					const inputElement = input as HTMLInputElement;
@@ -411,11 +411,17 @@ function setupEventListeners(tabId: number) {
 						};
 
 						if (navigator.canShare(shareData)) {
+							const pathField = document.getElementById('path-name-field') as HTMLInputElement;
+							const vaultDropdown = document.getElementById('vault-select') as HTMLSelectElement;
+							const path = pathField?.value || '';
+							const vault = vaultDropdown?.value || '';
+
 							navigator.share(shareData)
-								.then(() => {
+								.then(async () => {
+									await incrementStat('share', vault, path);
 									const moreDropdown = document.getElementById('more-dropdown');
 									if (moreDropdown) {
-										moreDropdown.classList.remove('show');
+											moreDropdown.classList.remove('show');
 									}
 								})
 								.catch((error) => {
@@ -560,8 +566,8 @@ async function handleClip() {
 				showError('failedToProcessInterpreter');
 				return;
 			}
-		} else if (interpretBtn.textContent?.toLowerCase() !== 'done') {
-			interpretBtn.click(); // Trigger processing
+		} else if (!interpretBtn.classList.contains('done')) {
+			interpretBtn.click(); // Only trigger if not already processed
 			try {
 				await waitForInterpreter(interpretBtn);
 			} catch (error) {
@@ -602,6 +608,7 @@ async function handleClip() {
 		}
 
 		await saveToObsidian(fileContent, noteName, path, selectedVault, currentTemplate.behavior);
+		await incrementStat('addToObsidian', selectedVault, path);
 
 		// Only update lastSelectedVault if the user explicitly chose a vault
 		if (!currentTemplate.vault) {
@@ -624,9 +631,9 @@ async function waitForInterpreter(interpretBtn: HTMLButtonElement): Promise<void
 	return new Promise((resolve, reject) => {
 		const checkProcessing = () => {
 			if (!interpretBtn.classList.contains('processing')) {
-				if (interpretBtn.textContent?.toLowerCase() === 'done') {
+				if (interpretBtn.classList.contains('done')) {
 					resolve();
-				} else if (interpretBtn.textContent?.toLowerCase() === 'error') {
+				} else if (interpretBtn.classList.contains('error')) {
 					reject(new Error(getMessage('failedToProcessInterpreter')));
 				} else {
 					setTimeout(checkProcessing, 100);
@@ -865,15 +872,26 @@ async function initializeTemplateFields(currentTabId: number, template: Template
 			// If auto-run is enabled and there are prompt variables, use interpreter
 			if (generalSettings.interpreterAutoRun && promptVariables.length > 0) {
 				try {
+					const interpretBtn = document.getElementById('interpret-btn') as HTMLButtonElement;
 					const modelSelect = document.getElementById('model-select') as HTMLSelectElement;
-					const selectedModelId = modelSelect?.value || generalSettings.interpreterModel || 'gpt-4o-mini';
+					const selectedModelId = modelSelect?.value || generalSettings.interpreterModel;
 					const modelConfig = generalSettings.models.find(m => m.id === selectedModelId);
 					if (!modelConfig) {
 						throw new Error(`Model configuration not found for ${selectedModelId}`);
 					}
 					await handleInterpreterUI(template, variables, currentTabId!, currentTabId ? await browser.tabs.get(currentTabId).then(tab => tab.url || '') : '', modelConfig);
+					
+					// Ensure the button shows the completed state after auto-run
+					if (interpretBtn) {
+						interpretBtn.classList.add('done');
+						interpretBtn.disabled = true;
+					}
 				} catch (error) {
 					console.error('Error auto-processing with interpreter:', error);
+					const interpretBtn = document.getElementById('interpret-btn') as HTMLButtonElement;
+					if (interpretBtn) {
+						interpretBtn.classList.add('error');
+					}
 				}
 			}
 		}
@@ -1054,10 +1072,13 @@ function updateHighlighterModeUI(isActive: boolean) {
 export async function copyToClipboard(content: string) {
 	try {
 		await navigator.clipboard.writeText(content);
-		const moreDropdown = document.getElementById('more-dropdown');
-		if (moreDropdown) {
-			moreDropdown.classList.remove('show');
-		}
+		
+		const pathField = document.getElementById('path-name-field') as HTMLInputElement;
+		const vaultDropdown = document.getElementById('vault-select') as HTMLSelectElement;
+		const path = pathField?.value || '';
+		const vault = vaultDropdown?.value || '';
+		
+		await incrementStat('copyToClipboard', vault, path);
 
 		// Change the main button text temporarily
 		const clipButton = document.getElementById('clip-btn');
@@ -1079,12 +1100,13 @@ export async function copyToClipboard(content: string) {
 async function handleSaveToDownloads() {
 	try {
 		const noteNameField = document.getElementById('note-name-field') as HTMLInputElement;
+		const pathField = document.getElementById('path-name-field') as HTMLInputElement;
+		const vaultDropdown = document.getElementById('vault-select') as HTMLSelectElement;
+		
 		let fileName = noteNameField?.value || 'untitled';
-		fileName = sanitizeFileName(fileName);
-		if (!fileName.toLowerCase().endsWith('.md')) {
-			fileName += '.md';
-		}
-
+		const path = pathField?.value || '';
+		const vault = vaultDropdown?.value || '';
+		
 		const properties = Array.from(document.querySelectorAll('.metadata-property input')).map(input => {
 			const inputElement = input as HTMLInputElement;
 			return {
@@ -1105,6 +1127,8 @@ async function handleSaveToDownloads() {
 			tabId: currentTabId,
 			onError: (error) => showError('failedToSaveFile')
 		});
+
+		await incrementStat('saveFile', vault, path);
 
 		const moreDropdown = document.getElementById('more-dropdown');
 		if (moreDropdown) {
