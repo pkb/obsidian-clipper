@@ -8,11 +8,17 @@
 	"addProperty": {
 		"message": "+ Eigenschaft hinzufügen"
 	},
+	"addProvider": {
+		"message": "+ Anbieter hinzufügen"
+	},
+	"addProviderTitle": {
+		"message": "Anbieter hinzufügen"
+	},
 	"addToObsidian": {
 		"message": "Zu Obsidian hinzufügen"
 	},
 	"addVaultPlaceholder": {
-		"message": "Drücken Sie Enter, um einen Tresor hinzuzufügen"
+		"message": "Drücken Sie Enter, um einen Vault hinzuzufügen"
 	},
 	"advanced": {
 		"message": "Erweitert"
@@ -24,24 +30,13 @@
 		"message": "Hervorhebungen immer anzeigen"
 	},
 	"alwaysShowHighlightsDescription": {
-		"message": "Zeigt Ihre gespeicherten Hervorhebungen beim Laden einer Seite an. Deaktivieren Sie dies, um Hervorhebungen nur anzuzeigen, wenn der Hervorhebungsmodus aktiviert ist."
+		"message": "Zeigt deine gespeicherten Hervorhebungen beim Laden einer Seite an. Deaktiviere dies, um Hervorhebungen nur anzuzeigen, wenn der Hervorhebungsmodus aktiviert ist."
 	},
-	"anthropicApiKey": {
-		"message": "Anthropic API-Schlüssel"
-	},
-	"anthropicApiKeyDescription": {
-		"message": "Sie können Ihren Anthropic API-Schlüssel $link_start$hier$link_end$ erhalten.",
-		"placeholders": {
-			"link_end": {
-				"content": "</a>"
-			},
-			"link_start": {
-				"content": "<a href=\"https://console.anthropic.com/settings/keys\" target=\"_blank\">"
-			}
-		}
+	"apiKeyMissing": {
+		"message": "Kein API-Schlüssel"
 	},
 	"apiKeysWarning": {
-		"message": "Durch die Nutzung eines externen Anbieters stimmen Sie dessen Nutzungsbedingungen und Datenschutzrichtlinien zu. Interpreter-Anfragen werden direkt an den von Ihnen gewählten Anbieter gesendet. Obsidian sammelt oder speichert keine Daten über Ihre Anfragen."
+		"message": "Durch die Nutzung eines externen Anbieters stimmst du dessen Nutzungsbedingungen und Datenschutzrichtlinien zu. Interpreter-Anfragen werden direkt an den von dir gewählten Anbieter gesendet. Obsidian sammelt oder speichert keine Daten über deine Anfragen."
 	},
 	"appendToDaily": {
 		"message": "Zur Tagesnotiz am Ende hinzufügen"
@@ -53,7 +48,7 @@
 		"message": "Automatisch ausführen"
 	},
 	"autoRunInterpreterDescription": {
-		"message": "Führt Prompt-Variablen sofort aus, wenn die Vorlage welche enthält. Dies verbraucht API-Guthaben bei Ihrem Modellanbieter. Deaktivieren Sie dies, wenn Sie den Interpreter nur manuell ausführen möchten."
+		"message": "Führt Prompt-Variablen sofort aus, wenn die Vorlage welche enthält. Dies verbraucht API-Guthaben bei deinem Modellanbieter. Deaktiviere dies, wenn du den Interpreter nur manuell ausführen möchtest."
 	},
 	"behavior": {
 		"message": "Verhalten"
@@ -63,6 +58,24 @@
 	},
 	"cancel": {
 		"message": "Abbrechen"
+	},
+	"cannotDeleteProvider": {
+		"message": "Anbieter \"$1\" kann nicht gelöscht werden, da er von $2 Modell(en) verwendet wird."
+	},
+	"changelog": {
+		"message": "Änderungsprotokoll"
+	},
+	"chooseFile": {
+		"message": "Datei auswählen"
+	},
+	"choosePropertiesFile": {
+		"message": "Eigenschaftsdatei auswählen"
+	},
+	"chooseSettingsFile": {
+		"message": "Einstellungsdatei auswählen"
+	},
+	"chooseTemplateFile": {
+		"message": "Vorlagendatei auswählen"
 	},
 	"clipBehavior": {
 		"message": "Ausschneideverhalten"
@@ -91,7 +104,10 @@
 		"message": "Hervorhebungsmodus umschalten"
 	},
 	"confirmDeleteTemplate": {
-		"message": "Sind Sie sicher, dass Sie die Vorlage \"$1\" löschen möchten?"
+		"message": "Möchtest du die Vorlage \"$1\" wirklich löschen?"
+	},
+	"confirmReplaceSettings": {
+		"message": "Dies wird alle deine aktuellen Einstellungen, einschließlich Vorlagen und Eigenschaften, ersetzen. Möchtest du wirklich fortfahren?"
 	},
 	"copied": {
 		"message": "Kopiert!"
@@ -105,6 +121,9 @@
 	"createNewNote": {
 		"message": "Neue Notiz erstellen"
 	},
+	"custom": {
+		"message": "Benutzerdefiniert"
+	},
 	"dailyNoteFormat": {
 		"message": "Tagesnotiz-Format (z.B. YYYY-MM-DD)"
 	},
@@ -112,7 +131,7 @@
 		"message": "Standard-Interpreter-Kontext"
 	},
 	"defaultInterpreterContextDescription": {
-		"message": "Das Modell wird diesen Kontext verwenden, um Prompt-Variablen zu interpretieren. Variablen und Filter können hier verwendet werden."
+		"message": "Der Kontext, der zur Interpretation von Prompt-Variablen verwendet wird. Variablen können hier verwendet werden."
 	},
 	"defaultTemplateName": {
 		"message": "Standard"
@@ -123,14 +142,17 @@
 	"deleteModelConfirm": {
 		"message": "Sind Sie sicher, dass Sie dieses Modell löschen möchten?"
 	},
+	"deleteProviderConfirm": {
+		"message": "Sind Sie sicher, dass Sie diesen Anbieter löschen möchten?"
+	},
 	"disableHighlighter": {
 		"message": "Hervorheber deaktivieren"
 	},
-	"display": {
-		"message": "Anzeige"
-	},
 	"done": {
 		"message": "fertig"
+	},
+	"dragAndDropFile": {
+		"message": "Datei hierher ziehen und ablegen"
 	},
 	"duplicate": {
 		"message": "Duplizieren"
@@ -152,6 +174,9 @@
 	"editModel": {
 		"message": "Modell bearbeiten"
 	},
+	"editProvider": {
+		"message": "Anbieter bearbeiten"
+	},
 	"editTemplate": {
 		"message": "Vorlage bearbeiten"
 	},
@@ -165,7 +190,7 @@
 		"message": "Interpreter aktivieren"
 	},
 	"enableInterpreterDescription": {
-		"message": "Verwenden Sie natürliche Sprache, um Daten aus Seiten zu extrahieren. Zum Beispiel können Sie die Vorlagensyntax $strong_start${{\"eine Zusammenfassung der Seite\"}}$strong_end$ verwenden. Erfordert einen API-Schlüssel oder ein unten konfiguriertes benutzerdefiniertes Modell. $link_start$Mehr erfahren$link_end$",
+		"message": "Nutze natürliche Sprache, um Daten aus Seiten zu extrahieren. Du kannst zum Beispiel die Vorlagensyntax $strong_start${{\"eine Zusammenfassung der Seite\"}}$strong_end$ verwenden. Erfordert einen API-Schlüssel oder ein unten konfiguriertes benutzerdefiniertes Modell. $link_start$Mehr erfahren$link_end$.",
 		"placeholders": {
 			"link_end": {
 				"content": "</a>"
@@ -203,7 +228,7 @@
 		"message": "Eigenschaften exportieren"
 	},
 	"exportPropertiesDescription": {
-		"message": "Speichern Sie Web Clipper Eigenschaften in einer $strong_start$types.json$strong_end$ Datei, die in Ihren Obsidian-Tresor oder in Web Clipper auf anderen Geräten importiert werden kann.",
+		"message": "Speichern Sie Web Clipper Eigenschaften in einer $strong_start$types.json$strong_end$ Datei, die in Ihren Obsidian-Vault oder in Web Clipper auf anderen Geräten importiert werden kann.",
 		"placeholders": {
 			"strong_end": {
 				"content": "</strong>"
@@ -225,8 +250,20 @@
 	"failedToDeleteTemplate": {
 		"message": "Vorlage konnte nicht gelöscht werden. Bitte versuchen Sie es erneut."
 	},
+	"failedToDuplicateTemplate": {
+		"message": "Duplizieren der Vorlage fehlgeschlagen. Bitte versuchen Sie es erneut."
+	},
+	"failedToExportHighlights": {
+		"message": "Export der Markierungen fehlgeschlagen. Bitte überprüfen Sie die Konsole für weitere Details."
+	},
+	"failedToExportSettings": {
+		"message": "Export der Einstellungen fehlgeschlagen. Bitte überprüfen Sie die Konsole für weitere Details."
+	},
 	"failedToExtractContent": {
 		"message": "Seiteninhalt konnte nicht extrahiert werden."
+	},
+	"failedToImportTemplate": {
+		"message": "Fehler beim Importieren der Vorlage. Bitte überprüfen Sie die Datei und versuchen Sie es erneut."
 	},
 	"failedToInitialize": {
 		"message": "Bitte versuchen Sie, die Erweiterung neu zu laden."
@@ -237,6 +274,9 @@
 	"failedToProcessInterpreter": {
 		"message": "Interpreter-Verarbeitung fehlgeschlagen. Bitte versuchen Sie es erneut."
 	},
+	"failedToResetProviders": {
+		"message": "Fehler beim Zurücksetzen von Anbietern und Modellen"
+	},
 	"failedToResetTemplate": {
 		"message": "Standardvorlage konnte nicht zurückgesetzt werden. Bitte versuchen Sie es erneut."
 	},
@@ -246,6 +286,9 @@
 	"failedToSaveFile": {
 		"message": "Datei konnte nicht gespeichert werden"
 	},
+	"failedToSaveProvider": {
+		"message": "Speichern des Anbieters fehlgeschlagen. Bitte versuchen Sie es erneut."
+	},
 	"folder": {
 		"message": "Ordner"
 	},
@@ -254,6 +297,9 @@
 	},
 	"generalSettings": {
 		"message": "Allgemeine Einstellungen"
+	},
+	"getApiKeyHere": {
+		"message": "Holen Sie sich hier Ihren $1 API-Schlüssel."
 	},
 	"help": {
 		"message": "Hilfe"
@@ -285,11 +331,17 @@
 	"importAllSettingsDescription": {
 		"message": "Importieren Sie alle Einstellungen einschließlich Vorlagen und Eigenschaften. Dies wird Ihre aktuelle Konfiguration ersetzen."
 	},
+	"importFailed": {
+		"message": "Import fehlgeschlagen. Bitte überprüfen Sie die Konsole für weitere Details."
+	},
+	"importModalTitle": {
+		"message": "Importieren"
+	},
 	"importProperties": {
 		"message": "Eigenschaften importieren"
 	},
 	"importPropertiesDescription": {
-		"message": "Um Ihre Eigenschaften aus Obsidian zu importieren, suchen Sie die $strong_1_start$types.json$strong_1_end$ Datei im $strong_2_start$.obsidian$strong_2_end$ Ordner in Ihrem Tresor. Beachten Sie, dass dieser Ordner standardmäßig auf den meisten Betriebssystemen versteckt ist.",
+		"message": "Um deine Eigenschaften aus Obsidian zu importieren, suche die $strong_1_start$types.json$strong_1_end$ Datei im $strong_2_start$.obsidian$strong_2_end$ Ordner in deinem Vault. Beachte, dass dieser Ordner standardmäßig auf den meisten Betriebssystemen versteckt ist.",
 		"placeholders": {
 			"strong_1_end": {
 				"content": "</strong>"
@@ -304,6 +356,12 @@
 				"content": "<strong>"
 			}
 		}
+	},
+	"importSettings": {
+		"message": "Einstellungen importieren"
+	},
+	"importTemplate": {
+		"message": "Vorlage importieren"
 	},
 	"interpret": {
 		"message": "interpretieren"
@@ -340,18 +398,6 @@
 	"legacyModeDescription": {
 		"message": "Verwendet die URI-Ausschneidemethode, die mit Obsidian 1.6.7 oder älter kompatibel ist. Beachten Sie, dass die Länge des Inhalts, den Sie ausschneiden können, durch Ihren Browser und das Betriebssystem begrenzt ist. Einige Seiten können ohne Fehlermeldungen fehlschlagen."
 	},
-	"modelApiKey": {
-		"message": "API-Schlüssel"
-	},
-	"modelApiKeyDescription": {
-		"message": "Geben Sie den API-Schlüssel für dieses Modell ein. Wird möglicherweise nicht für alle Anbieter benötigt."
-	},
-	"modelBaseUrl": {
-		"message": "Basis-URL"
-	},
-	"modelBaseUrlDescription": {
-		"message": "Die API-Endpunkt-URL für dieses Modell."
-	},
 	"modelName": {
 		"message": "Modellname"
 	},
@@ -364,14 +410,11 @@
 	"modelProviderDescription": {
 		"message": "Der Modellanbieter, z.B. Ollama, OpenRouter, Google, etc."
 	},
-	"modelProviderId": {
-		"message": "Modell-ID"
+	"modelProviderPlaceholder": {
+		"message": "Anbieter"
 	},
-	"modelProviderIdDescription": {
-		"message": "Die Kennung des Modells von Ihrem Anbieter. Typischerweise ein kurzer Name ohne Leerzeichen."
-	},
-	"modelProviderIdPlaceholder": {
-		"message": "Modell-ID"
+	"modelRequiredFields": {
+		"message": "Modellname, Anbieter und Modell-ID sind erforderlich."
 	},
 	"models": {
 		"message": "Modelle"
@@ -387,6 +430,9 @@
 	},
 	"noTemplates": {
 		"message": "Keine Vorlagen verfügbar. Bitte fügen Sie eine Vorlage in den Einstellungen hinzu."
+	},
+	"noUnusedProperties": {
+		"message": "Keine unbenutzten Eigenschaften gefunden."
 	},
 	"noteContent": {
 		"message": "Notizinhalt"
@@ -407,7 +453,7 @@
 		"message": "Notizname"
 	},
 	"noteNameFormatDescription": {
-		"message": "Format für den Dateinamen der Notiz. Sie können Variablen wie {{title}}, {{date}} und {{published}} verwenden, um Daten von der Seite vorab auszufüllen. $link_start$Mehr erfahren$link_end$.",
+		"message": "Format für den Dateinamen der Notiz. Du kannst Variablen wie {{title}}, {{date}} und {{published}} verwenden, um Daten von der Seite vorab auszufüllen. $link_start$Mehr erfahren$link_end$.",
 		"placeholders": {
 			"link_end": {
 				"content": "</a>"
@@ -426,28 +472,20 @@
 	"open": {
 		"message": "Öffnen"
 	},
-	"openaiApiKey": {
-		"message": "OpenAI API-Schlüssel"
-	},
-	"openaiApiKeyDescription": {
-		"message": "Sie können Ihren OpenAI API-Schlüssel $link_start$hier$link_end$ erhalten.",
-		"placeholders": {
-			"link_end": {
-				"content": "</a>"
-			},
-			"link_start": {
-				"content": "<a href=\"https://platform.openai.com/api-keys\" target=\"_blank\">"
-			}
-		}
-	},
 	"optional": {
 		"message": "(optional)"
+	},
+	"orPasteBelow": {
+		"message": "Oder fügen Sie den Inhalt unten ein"
 	},
 	"pageCannotBeClipped": {
 		"message": "Diese Seite kann nicht ausgeschnitten werden."
 	},
 	"pageVariables": {
 		"message": "Seitenvariablen"
+	},
+	"pasteJsonHere": {
+		"message": "Fügen Sie hier JSON ein"
 	},
 	"pleaseReload": {
 		"message": "Bitte versuchen Sie, die Seite neu zu laden."
@@ -473,6 +511,45 @@
 	"propertyValue": {
 		"message": "Eigenschaftswert"
 	},
+	"provider": {
+		"message": "Anbieter"
+	},
+	"providerApiKey": {
+		"message": "API-Schlüssel"
+	},
+	"providerApiKeyDescription": {
+		"message": "Ihr API-Schlüssel für diesen Anbieter."
+	},
+	"providerBaseUrl": {
+		"message": "Basis-URL"
+	},
+	"providerBaseUrlDescription": {
+		"message": "Die API-Endpunkt-URL für diesen Anbieter."
+	},
+	"providerModelId": {
+		"message": "Modell-ID"
+	},
+	"providerModelIdDescription": {
+		"message": "Die Kennung des Modells von Ihrem Anbieter. Typischerweise ein kurzer Name ohne Leerzeichen."
+	},
+	"providerModelIdPlaceholder": {
+		"message": "Modell-ID"
+	},
+	"providerName": {
+		"message": "Anbietername"
+	},
+	"providerNameDescription": {
+		"message": "Anzeigename für diesen Anbieter."
+	},
+	"providerPreset": {
+		"message": "Voreinstellung"
+	},
+	"providerPresetDescription": {
+		"message": "Wählen Sie einen Anbieter aus oder erstellen Sie einen benutzerdefinierten."
+	},
+	"providerRequiredFields": {
+		"message": "Anbietername und Basis-URL sind erforderlich."
+	},
 	"providers": {
 		"message": "Anbieter"
 	},
@@ -492,7 +569,7 @@
 		"message": "Entfernen Sie alle Eigenschaften, die in keiner Vorlage verwendet werden."
 	},
 	"removeVault": {
-		"message": "Tresor entfernen"
+		"message": "Vault entfernen"
 	},
 	"replaceContent": {
 		"message": "Seiteninhalt ersetzen"
@@ -506,6 +583,12 @@
 	"resetDefaultTemplateDescription": {
 		"message": "Entfernen Sie alle Änderungen, die Sie an der Standardvorlage vorgenommen haben."
 	},
+	"resetProvidersAndModels": {
+		"message": "Standardmodelle zurücksetzen"
+	},
+	"resetProvidersAndModelsDescription": {
+		"message": "Setzen Sie Anbieter und Modelle auf die Standardeinstellungen zurück."
+	},
 	"save": {
 		"message": "Speichern"
 	},
@@ -515,11 +598,20 @@
 	"searchVariables": {
 		"message": "Variablen suchen..."
 	},
+	"selectProvider": {
+		"message": "Wählen Sie einen Anbieter aus"
+	},
+	"selectTemplateToExport": {
+		"message": "Bitte wählen Sie eine Vorlage zum Exportieren aus."
+	},
 	"settings": {
 		"message": "Einstellungen"
 	},
 	"settingsHeading": {
 		"message": "Einstellungen"
+	},
+	"settingsImportSuccess": {
+		"message": "Alle Einstellungen wurden erfolgreich importiert. Bitte aktualisieren Sie die Seite, um die Änderungen zu sehen."
 	},
 	"share": {
 		"message": "Teilen..."
@@ -569,6 +661,12 @@
 	"systemDefault": {
 		"message": "System"
 	},
+	"templateCopied": {
+		"message": "Vorlagen-JSON in Zwischenablage kopiert"
+	},
+	"templateCopyError": {
+		"message": "Vorlagen-JSON konnte nicht in Zwischenablage kopiert werden"
+	},
 	"templateName": {
 		"message": "Vorlagenname"
 	},
@@ -590,11 +688,20 @@
 	"thinking": {
 		"message": "denke nach"
 	},
+	"unknownProvider": {
+		"message": "Unbekannter Anbieter"
+	},
+	"updateAvailable": {
+		"message": "Ein Update ist verfügbar."
+	},
+	"usingLatestVersion": {
+		"message": "Sie verwenden die neueste Version."
+	},
 	"vault": {
-		"message": "Tresor"
+		"message": "Vault"
 	},
 	"vaultDescription": {
-		"message": "Wählen Sie den Standard-Tresor für diese Vorlage. Gehen Sie zu $link_start$allgemeinen Einstellungen$link_end$, um Tresore hinzuzufügen oder zu entfernen.",
+		"message": "Wählen Sie den Standard-Vault für diese Vorlage. Gehen Sie zu $link_start$allgemeinen Einstellungen$link_end$, um Vaulte hinzuzufügen oder zu entfernen.",
 		"placeholders": {
 			"link_end": {
 				"content": "</a>"
@@ -605,10 +712,10 @@
 		}
 	},
 	"vaults": {
-		"message": "Tresore"
+		"message": "Vaulte"
 	},
 	"vaultsDescription": {
-		"message": "Standardmäßig werden ausgeschnittene Notizen im aktuell geöffneten Tresor gespeichert. Sie können hier Tresore hinzufügen, wenn Sie die Option haben möchten, in verschiedenen Tresoren zu speichern. Tresornamen müssen exakt mit dem Namen des Obsidian-Tresors übereinstimmen. Drücken Sie $strong_start$Enter$strong_end$, um einen Tresor hinzuzufügen.",
+		"message": "Standardmäßig werden ausgeschnittene Notizen im aktuell geöffneten Vault gespeichert. Du kannst hier Vaults hinzufügen, wenn du die Option haben möchtest, in verschiedenen Vaults zu speichern. Vaultnamen müssen exakt mit dem Namen des Obsidian-Vaults übereinstimmen. Drücke $strong_start$Enter$strong_end$, um einen Vault hinzuzufügen.",
 		"placeholders": {
 			"strong_end": {
 				"content": "</strong>"
@@ -617,5 +724,8 @@
 				"content": "<strong>"
 			}
 		}
+	},
+	"version": {
+		"message": "Version"
 	}
 }
