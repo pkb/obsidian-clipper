@@ -56,6 +56,7 @@ import { indent } from './filters/indent';
 import { to_html } from './filters/to_html';
 import { replace_html_tag } from './filters/replace_html_tag';
 import { wikilink } from './filters/wikilink';
+import { duration } from './filters/duration';
 
 
 export const filters: { [key: string]: FilterFunction } = {
@@ -108,12 +109,13 @@ export const filters: { [key: string]: FilterFunction } = {
 	text,
 	to_json,
 	wrap,
-    split_items,
-    dur,
+        split_items,
+        dur,
 	indent,
 	to_html,
 	replace_html_tag,
-	wikilink
+	wikilink,
+	duration
 };
 
 // Split individual filters
