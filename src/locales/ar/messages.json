@@ -1,4 +1,7 @@
 {
+	"activity": {
+		"message": "النشاط"
+	},
 	"addModel": {
 		"message": "+ إضافة نموذج"
 	},
@@ -25,6 +28,9 @@
 	},
 	"allProperties": {
 		"message": "جميع الخصائص"
+	},
+	"allTime": {
+		"message": "كل الوقت"
 	},
 	"alwaysShowHighlights": {
 		"message": "إظهار التظليلات دائماً"
@@ -55,6 +61,15 @@
 	},
 	"behaviorWarning": {
 		"message": "الإضافة إلى ملاحظة موجودة أو ملاحظة يومية تتطلب أوبسيديان 1.7.2 أو أحدث."
+	},
+	"byDay": {
+		"message": "أيام"
+	},
+	"byMonth": {
+		"message": "أشهر"
+	},
+	"byWeek": {
+		"message": "أسابيع"
 	},
 	"cancel": {
 		"message": "إلغاء"
@@ -289,6 +304,15 @@
 	"failedToSaveProvider": {
 		"message": "فشل في حفظ المزود. يرجى المحاولة مرة أخرى."
 	},
+	"feedback": {
+		"message": "الملاحظات"
+	},
+	"feedbackDescription": {
+		"message": "كيف يمكننا تحسين Web Clipper؟ يرجى زيارة صفحة المساعدة الخاصة بنا، حيث يمكنك الإبلاغ عن الأخطاء، اقتراح الميزات، والحصول على المساعدة في المشكلات الشائعة."
+	},
+	"feedbackTitle": {
+		"message": "شكراً لملاحظاتك"
+	},
 	"folder": {
 		"message": "مجلد"
 	},
@@ -318,6 +342,9 @@
 	},
 	"highlighterSettings": {
 		"message": "المظلل"
+	},
+	"history": {
+		"message": "التاريخ"
 	},
 	"hotkeys": {
 		"message": "اختصارات لوحة المفاتيح"
@@ -389,6 +416,9 @@
 	"languageDescription": {
 		"message": "اختر لغة العرض لواجهة الإضافة."
 	},
+	"last30Days": {
+		"message": "الـ 30 يومًا الماضية"
+	},
 	"lastUsed": {
 		"message": "آخر استخدام"
 	},
@@ -418,6 +448,9 @@
 	},
 	"models": {
 		"message": "النماذج"
+	},
+	"modelsListFor": {
+		"message": "قائمة النماذج لـ $1"
 	},
 	"more": {
 		"message": "المزيد"
@@ -478,17 +511,32 @@
 	"orPasteBelow": {
 		"message": "أو الصق المحتوى أدناه"
 	},
+	"overwriteNote": {
+		"message": "استبدال الملاحظة"
+	},
 	"pageCannotBeClipped": {
 		"message": "لا يمكن قص هذه الصفحة."
 	},
 	"pageVariables": {
 		"message": "متغيرات الصفحة"
 	},
+	"pagesSaved": {
+		"message": "تم حفظ الصفحة"
+	},
+	"pagesSavedPlural": {
+		"message": "تم حفظ الصفحات"
+	},
 	"pasteJsonHere": {
 		"message": "الصق JSON هنا"
 	},
 	"pleaseReload": {
 		"message": "يرجى محاولة إعادة تحميل الصفحة."
+	},
+	"popularModels": {
+		"message": "النماذج الشائعة"
+	},
+	"popularModelsDescription": {
+		"message": "اختر من النماذج المستخدمة بشكل شائع أو أدخل تفاصيل النموذج المخصص."
 	},
 	"prependToDaily": {
 		"message": "إضافة إلى الملاحظة اليومية، في البداية"
@@ -552,6 +600,12 @@
 	},
 	"providers": {
 		"message": "المزودون"
+	},
+	"rateExtensionDescription": {
+		"message": "هل تستمتع بـ Web Clipper؟ ساعدنا عن طريق تقييمه."
+	},
+	"recommended": {
+		"message": "موصى به"
 	},
 	"refresh": {
 		"message": "تحديث"
